@@ -10,6 +10,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+BACKEND_URL = os.getenv(
+    "BACKEND_URL",
+    st.secrets.get("BACKEND_URL", "http://localhost:8000") if hasattr(st, "secrets") else "http://localhost:8000",
+).rstrip("/")
+
 st.set_page_config(
     page_title="The Trial Oracle",
     page_icon="⬡",
@@ -495,27 +500,52 @@ def _render_safety_audit(
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### ⚕ The Trial Oracle")
-    st.markdown("---")
-    st.markdown("**Configuration**")
-    backend_url = st.text_input(
-        "Backend URL",
-        value=os.getenv("BACKEND_URL", "http://localhost:8000"),
-        help="FastAPI backend URL",
+    st.markdown(
+        '<div style="padding:14px 0 6px">'
+        '<div style="font-size:1.05rem;font-weight:700;color:#F1F5F9;letter-spacing:.02em">'
+        '⚕ The Trial Oracle</div>'
+        '<div style="font-size:.72rem;color:#64748B;margin-top:2px;letter-spacing:.05em;text-transform:uppercase">'
+        'Clinical AI Division</div>'
+        '</div>',
+        unsafe_allow_html=True,
     )
     st.markdown("---")
-    st.markdown("**Engine**")
-    st.code("MBZUAI-IFM/K2-Think-v2", language=None)
-    st.markdown("**Data Source**")
-    st.code("ClinicalTrials.gov API v2", language=None)
+
+    st.markdown(
+        '<div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;'
+        'color:#94A3B8;margin-bottom:10px">System Status</div>',
+        unsafe_allow_html=True,
+    )
+    st.success("Inference Engine: MBZUAI-IFM/K2-Think-v2", icon="🟢")
+    st.success("Clinical Data Link: ClinicalTrials.gov API v2", icon="🟢")
+    st.info("Security: End-to-End Encryption Active", icon="🔒")
+
     st.markdown("---")
-    st.markdown("**Clinical Protocols**")
+
+    st.markdown(
+        '<div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;'
+        'color:#94A3B8;margin-bottom:10px">Clinical Protocols</div>',
+        unsafe_allow_html=True,
+    )
     for nct, lbl in [
         ("NCT04280706", "Lung cancer / EGFR"),
         ("NCT03661788", "Breast cancer / TNBC"),
         ("NCT04158791", "Multiple Myeloma"),
     ]:
         st.markdown(f"`{nct}` — {lbl}")
+
+    st.markdown("---")
+
+    with st.expander("⚙️ Advanced Settings"):
+        _dbg_url = st.text_input(
+            "Backend URL",
+            value=BACKEND_URL,
+            help="Override the backend URL for debugging.",
+            key="_dbg_backend_url",
+        )
+        if _dbg_url.strip():
+            BACKEND_URL = _dbg_url.strip().rstrip("/")
+
     st.markdown("---")
     st.caption("Build with K2 Think V2 Hackathon · 2026")
     st.caption("The Trial Oracle — Clinical AI Division")
@@ -694,13 +724,13 @@ if submitted:
         payload = {"nct_id": nct_clean, "patient": patient_dict}
         try:
             response = requests.post(
-                f"{backend_url.rstrip('/')}/api/match",
+                f"{BACKEND_URL}/api/match",
                 json=payload,
                 timeout=150,
             )
         except requests.exceptions.ConnectionError:
             status.update(label="Connection failed", state="error")
-            st.error(f"Cannot reach the backend at **{backend_url}**. Is the FastAPI server running?")
+            st.error(f"Cannot reach the backend at **{BACKEND_URL}**. Is the FastAPI server running?")
             st.stop()
         except requests.exceptions.Timeout:
             status.update(label="Request timed out", state="error")

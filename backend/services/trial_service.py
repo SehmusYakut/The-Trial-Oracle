@@ -171,6 +171,40 @@ class _ForbiddenError(Exception):
 # Embedded minimal data for NCT04280706 — used only when the live API is
 # unreachable after all retries, so a live demo never crashes on a 403.
 _FALLBACK_TRIALS: dict[str, TrialData] = {
+    "NCT03661788": TrialData(
+        nct_id="NCT03661788",
+        title=(
+            "Atezolizumab Plus Nab-Paclitaxel and Anthracycline-Based Chemotherapy "
+            "in Early Triple-Negative Breast Cancer (IMpassion031)"
+        ),
+        conditions=["Triple-Negative Breast Cancer", "Early Stage Breast Cancer"],
+        eligibility=EligibilityCriteria(
+            inclusion=[
+                "Histologically confirmed invasive triple-negative breast cancer (ER-negative, PR-negative, HER2-negative) per local pathology",
+                "Early-stage breast cancer: cT2–cT4d, cN0–cN3, cM0 per AJCC 8th edition staging",
+                "Age >= 18 years at the time of informed consent",
+                "ECOG Performance Status 0 or 1",
+                "Adequate bone marrow function: ANC >= 1.5 × 10⁹/L; Platelets >= 100 × 10⁹/L; Hemoglobin >= 9.0 g/dL",
+                "Adequate hepatic function: AST and ALT <= 2.5 × ULN; Total bilirubin <= 1.5 × ULN",
+                "Adequate renal function: Creatinine clearance >= 30 mL/min (Cockcroft-Gault)",
+                "LVEF >= 55% by echocardiogram or MUGA scan within 3 months prior to enrollment",
+                "No prior systemic therapy or locoregional radiation therapy for the current breast cancer diagnosis",
+            ],
+            exclusion=[
+                "Prior systemic anti-cancer therapy (chemotherapy, targeted therapy, immunotherapy) for the current breast cancer",
+                "Active or history of autoimmune disease requiring systemic treatment within the past 2 years",
+                "Prior allogeneic stem cell transplantation or solid organ transplantation",
+                "Administration of a live attenuated vaccine within 4 weeks prior to initiation of study treatment",
+                "Treatment with systemic immunosuppressive medications within 2 weeks prior to enrollment",
+                "Known HIV infection or AIDS-defining condition",
+                "Active hepatitis B virus (HBV) or hepatitis C virus (HCV) infection at screening",
+                "Significant cardiovascular disease: NYHA Class II or greater heart failure, unstable angina, or serious arrhythmia within 3 months",
+                "Pregnancy or active breastfeeding at the time of enrollment",
+            ],
+        ),
+        status="COMPLETED",
+        phase="PHASE3",
+    ),
     "NCT04280706": TrialData(
         nct_id="NCT04280706",
         title=(
@@ -372,10 +406,10 @@ async def fetch_trial(nct_id: str) -> TrialData:
     """
     Return TrialData for the given NCT ID.
 
-    Resolution order:
-      1. TTL cache        — no network call if a fresh entry exists (10-min window).
-      2. mock_trials.json — local file checked before any network activity.
-      3. Embedded dict    — in-process fallback for known demo IDs.
+    Resolution order (Iron Wall — local-first):
+      1. mock_trials.json — checked FIRST; returns immediately, zero network calls.
+      2. TTL cache        — in-memory warm data from a prior live fetch (10-min TTL).
+      3. Embedded dict    — in-process fallback for hardcoded demo IDs.
       4. Live fetch       — session-persistent httpx client with browser headers
                             and jittered exponential back-off (4 attempts total).
 
@@ -383,17 +417,17 @@ async def fetch_trial(nct_id: str) -> TrialData:
     """
     nct_id = nct_id.strip().upper()
 
-    # 1 — TTL cache
-    cached = _cache.get(nct_id)
-    if cached is not None:
-        return cached
-
-    # 2 — JSON file (checked BEFORE any network call)
+    # 1 — JSON file (LOCAL-FIRST: if data exists locally, never hit the network)
     json_fallback = _load_json_fallback(nct_id)
     if json_fallback is not None:
         _log.info("[LOCAL] Serving %s from mock_trials.json — no network call made.", nct_id)
         _cache.set(nct_id, json_fallback)
         return json_fallback
+
+    # 2 — TTL cache (in-process warm data from a prior live fetch)
+    cached = _cache.get(nct_id)
+    if cached is not None:
+        return cached
 
     # 3 — Embedded Python dict
     embedded = _FALLBACK_TRIALS.get(nct_id)

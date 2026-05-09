@@ -69,12 +69,37 @@ async def match_patient(body: MatchRequest):
     """
     try:
         trial: TrialData = await fetch_trial(body.nct_id)
-    except HTTPException:
+    except HTTPException as exc:
+        if exc.status_code == 403:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    f"Access denied fetching {body.nct_id}: ClinicalTrials.gov returned 403 Forbidden. "
+                    "Add this trial to data/mock_trials.json for offline access."
+                ),
+            ) from exc
+        if exc.status_code == 404:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"Trial {body.nct_id} was not found in the local cache or ClinicalTrials.gov. "
+                    "Verify the NCT ID is correct, or add it to data/mock_trials.json."
+                ),
+            ) from exc
         raise
-    except (_RetryableError, httpx.RequestError, Exception) as exc:
+    except (_RetryableError, httpx.RequestError) as exc:
         raise HTTPException(
-            status_code=404,
-            detail="Trial not found in local cache and API is currently rate-limited.",
+            status_code=503,
+            detail=(
+                f"Network error fetching {body.nct_id}: {exc}. "
+                "Add this trial to data/mock_trials.json for reliable offline access."
+            ),
         ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error loading trial {body.nct_id}: {exc}",
+        ) from exc
+
     result: MatchResult = await match_patient_to_trial(body.patient, trial)
     return _build_response(result, trial)

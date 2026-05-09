@@ -17,26 +17,27 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── CSS: Dark Mode Scientific Theme ───────────────────────────────────────────
+# ── CSS: High-Contrast Clinical Theme 2026 ────────────────────────────────────
 st.markdown("""<style>
-html,body,[class*="css"]{font-family:'Inter','Segoe UI',system-ui,sans-serif;font-size:14px}
+html,body,[class*="css"]{font-family:'Inter','Segoe UI',system-ui,sans-serif;font-size:15px}
 #MainMenu,footer,header{visibility:hidden}
 .stApp{background-color:#060D1A!important}
-.main .block-container{padding-top:1.5rem}
-label,.stMarkdown p,.stText p{color:#CBD5E1!important}
-h1,h2,h3,h4,h5,h6{color:#E2E8F0!important}
+.main .block-container{padding-top:1.5rem;max-width:100%}
+label,.stMarkdown p,.stText p{color:#CBD5E1!important;font-size:.93rem}
+h1,h2,h3,h4,h5,h6{color:#F1F5F9!important}
 .stTextInput input,.stNumberInput input,.stTextArea textarea{
-  background-color:#0D1F35!important;color:#E2E8F0!important;
-  border-color:#1E3A5F!important;caret-color:#10B981!important}
+  background-color:#0D1F35!important;color:#E2E8F0!important;font-size:.93rem!important;
+  border-color:#2D4F7A!important;caret-color:#10B981!important}
 .stSelectbox [data-baseweb="select"]>div{
-  background-color:#0D1F35!important;border-color:#1E3A5F!important;color:#E2E8F0!important}
+  background-color:#0D1F35!important;border-color:#2D4F7A!important;color:#E2E8F0!important}
 .stSelectbox [data-baseweb="select"] svg{fill:#94A3B8!important}
 [data-testid="stForm"]{background:#0B1929;border:1px solid #1E3A5F;border-radius:12px;padding:20px}
 .stButton>button{background:#0D2A45!important;color:#93C5FD!important;border:1px solid #1E4F8C!important;border-radius:6px!important;transition:box-shadow .2s}
 .stButton>button:hover{background:#0D3660!important;box-shadow:0 0 14px rgba(16,185,129,.25)!important}
 div[data-testid="stFormSubmitButton"]>button{
   background:linear-gradient(135deg,#059669 0%,#0D9488 100%)!important;color:#F0FDF4!important;
-  border:none!important;font-weight:700!important;box-shadow:0 0 22px rgba(16,185,129,.45)!important;border-radius:6px!important}
+  border:none!important;font-weight:700!important;font-size:1rem!important;
+  box-shadow:0 0 22px rgba(16,185,129,.45)!important;border-radius:6px!important}
 div[data-testid="stFormSubmitButton"]>button:hover{box-shadow:0 0 32px rgba(16,185,129,.65)!important}
 [data-testid="stSidebar"]{background-color:#040B16!important;border-right:1px solid #0D2040!important}
 [data-testid="stSidebar"] *{color:#CBD5E1!important}
@@ -45,37 +46,40 @@ div[data-testid="stFormSubmitButton"]>button:hover{box-shadow:0 0 32px rgba(16,1
 [data-testid="stSidebar"] hr{border-color:#0D2040!important}
 [data-testid="stSidebar"] code{background:#0D2040!important;color:#6EE7B7!important;border-radius:4px;padding:2px 6px}
 .stTabs [data-baseweb="tab-list"]{background:#060D1A!important;border-bottom:1px solid #1E3A5F!important;gap:4px}
-.stTabs [data-baseweb="tab"]{color:#475569!important;background:transparent!important;padding:8px 16px!important}
+.stTabs [data-baseweb="tab"]{color:#64748B!important;background:transparent!important;padding:8px 16px!important;font-size:.88rem!important}
 .stTabs [aria-selected="true"]{color:#10B981!important;border-bottom:2px solid #10B981!important}
 [data-testid="stMetric"]{background:#0B1929!important;border:1px solid #1E3A5F!important;border-radius:8px!important;padding:12px 16px!important}
-[data-testid="stMetricLabel"] p{color:#475569!important;font-size:.67rem!important;text-transform:uppercase!important;letter-spacing:.09em!important}
-[data-testid="stMetricValue"]{color:#10B981!important}
+[data-testid="stMetricLabel"] p{color:#94A3B8!important;font-size:.68rem!important;text-transform:uppercase!important;letter-spacing:.09em!important}
+[data-testid="stMetricValue"]{color:#10B981!important;font-size:1.4rem!important}
 .streamlit-expanderHeader{background:#0B1929!important;border:1px solid #1E3A5F!important;border-radius:6px!important;color:#CBD5E1!important}
 .streamlit-expanderContent{background:#08111E!important;border:1px solid #1E3A5F!important;border-top:none!important}
 [data-testid="stStatusWidget"]{background:#0B1929!important;border:1px solid #1E3A5F!important}
 hr{border-color:#0D2040!important}
 /* ─── AUDIT COMPONENTS ─── */
 .audit-card{border-radius:10px;padding:18px 20px;margin-bottom:4px}
-.audit-conflict{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3)}
-.audit-clean{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.25)}
-.audit-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:7px;font-size:.88rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px}
-.audit-badge-conflict{background:rgba(245,158,11,.14);color:#FDE68A;border:1.5px solid rgba(245,158,11,.4)}
+.audit-conflict{background:rgba(239,68,68,.07);border:2px solid rgba(239,68,68,.4)}
+.audit-clean{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.3)}
+.audit-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:7px;font-size:.95rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px}
+.audit-badge-conflict{background:rgba(239,68,68,.18);color:#FCA5A5;border:2px solid rgba(239,68,68,.55);box-shadow:0 0 18px rgba(239,68,68,.2)}
 .audit-badge-clean{background:rgba(16,185,129,.14);color:#6EE7B7;border:1.5px solid rgba(16,185,129,.35);box-shadow:0 0 16px rgba(16,185,129,.18)}
 .audit-badge-pending{background:rgba(100,116,139,.14);color:#94A3B8;border:1.5px solid rgba(100,116,139,.3)}
-.audit-criterion{font-family:monospace;font-size:.82rem;color:#94A3B8;background:#060D1A;padding:5px 10px;border-radius:4px;margin-bottom:10px;display:block}
-.audit-challenge-label{font-size:.63rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:rgba(245,158,11,.6);display:block;margin-bottom:5px}
-.audit-challenge-label-clean{color:rgba(16,185,129,.55)}
-.audit-challenge-text{font-size:.88rem;color:#CBD5E1;line-height:1.6}
-.audit-conf-pill{display:inline-block;padding:3px 10px;border-radius:4px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:10px}
+.audit-conflict-banner{background:rgba(239,68,68,.1);border:2px solid rgba(239,68,68,.5);border-radius:10px;padding:16px 20px;margin-bottom:16px}
+.audit-conflict-title{font-size:1.05rem;font-weight:800;color:#EF4444;margin-bottom:6px;display:block}
+.audit-conflict-body{color:#FCA5A5;font-size:.9rem;line-height:1.6}
+.audit-criterion{font-family:monospace;font-size:.84rem;color:#94A3B8;background:#060D1A;padding:6px 12px;border-radius:4px;margin-bottom:10px;display:block;word-break:break-word}
+.audit-challenge-label{font-size:.65rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:rgba(245,158,11,.85);display:block;margin-bottom:5px}
+.audit-challenge-label-clean{color:rgba(16,185,129,.85)}
+.audit-challenge-text{font-size:.9rem;color:#CBD5E1;line-height:1.65}
+.audit-conf-pill{display:inline-block;padding:4px 12px;border-radius:4px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:10px}
 .audit-conf-high{background:rgba(239,68,68,.14);color:#FCA5A5;border:1px solid rgba(239,68,68,.27)}
 .audit-conf-medium{background:rgba(245,158,11,.14);color:#FDE68A;border:1px solid rgba(245,158,11,.27)}
 .audit-conf-low{background:rgba(100,116,139,.14);color:#94A3B8;border:1px solid rgba(100,116,139,.27)}
-.advocate-header{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#334155;margin-bottom:10px;display:flex;align-items:center;gap:10px}
-.advocate-header::after{content:'';flex:1;height:1px;background:#0D2040}
+.advocate-header{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#94A3B8;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.advocate-header::after{content:'';flex:1;height:1px;background:#1E3A5F}
 /* ─── HEADER ─── */
 .lab-header{background:linear-gradient(120deg,#040B16 0%,#07121F 55%,#04130A 100%);border-radius:12px;padding:28px 36px;margin-bottom:20px;border:1px solid #0D2040;box-shadow:0 0 45px rgba(16,185,129,.07)}
-.lab-header h1{color:#F8FAFC!important;font-size:1.85rem;font-weight:700;margin:0 0 5px 0}
-.lab-header .subtitle{color:#334155!important;font-size:.9rem;margin:0}
+.lab-header h1{color:#F8FAFC!important;font-size:1.95rem;font-weight:700;margin:0 0 5px 0}
+.lab-header .subtitle{color:#94A3B8!important;font-size:.95rem;margin:0}
 .badge-row{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
 .badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
 .badge-k2{background:rgba(16,185,129,.13);color:#6EE7B7;border:1px solid rgba(16,185,129,.27)}
@@ -83,22 +87,22 @@ hr{border-color:#0D2040!important}
 .badge-v{background:rgba(139,92,246,.13);color:#C4B5FD;border:1px solid rgba(139,92,246,.27)}
 .badge-demo{background:rgba(245,158,11,.13);color:#FDE68A;border:1px solid rgba(245,158,11,.27)}
 /* ─── SECTION LABELS ─── */
-.section-label{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#1E3A5F;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #0D2040}
-.field-hint{font-size:.71rem;color:#1E3A5F;margin-top:-4px;margin-bottom:8px;font-style:italic}
+.section-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#94A3B8;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #1E3A5F}
+.field-hint{font-size:.73rem;color:#64748B;margin-top:-4px;margin-bottom:8px;font-style:italic}
 /* ─── TRIAL CARD ─── */
-.trial-card{background:#0B1929;border:1px solid #1E3A5F;border-left:4px solid #10B981;border-radius:8px;padding:14px 18px;margin-bottom:14px;box-shadow:0 0 20px rgba(16,185,129,.08)}
-.trial-nct{font-family:monospace;font-size:.78rem;color:#10B981;font-weight:700}
-.trial-title{font-size:.94rem;font-weight:600;color:#E2E8F0;margin:4px 0 0 0;line-height:1.4}
+.trial-card{background:#0B1929;border:1px solid #2D4F7A;border-left:4px solid #10B981;border-radius:8px;padding:14px 18px;margin-bottom:14px;box-shadow:0 0 20px rgba(16,185,129,.08)}
+.trial-nct{font-family:monospace;font-size:.82rem;color:#10B981;font-weight:700}
+.trial-title{font-size:.98rem;font-weight:600;color:#F1F5F9;margin:4px 0 0 0;line-height:1.5}
 /* ─── VERDICT ─── */
 .verdict-panel{background:#0B1929;border:1px solid #1E3A5F;border-radius:10px;padding:16px 18px}
-.verdict-label{font-size:.62rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#334155;margin-bottom:8px}
-.vbadge{display:inline-block;padding:6px 16px;border-radius:6px;font-size:.84rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.verdict-label{font-size:.65rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#94A3B8;margin-bottom:8px}
+.vbadge{display:inline-block;padding:6px 16px;border-radius:6px;font-size:.88rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
 .vbadge-eligible{background:rgba(16,185,129,.14);color:#6EE7B7;border:1.5px solid rgba(16,185,129,.35)}
 .vbadge-ineligible{background:rgba(239,68,68,.14);color:#FCA5A5;border:1.5px solid rgba(239,68,68,.35)}
 .vbadge-uncertain{background:rgba(245,158,11,.14);color:#FDE68A;border:1.5px solid rgba(245,158,11,.35)}
 .score-ring{font-size:2.3rem;font-weight:800;line-height:1;text-align:center}
-.score-sub{font-size:.62rem;color:#334155;text-align:center;margin-top:4px;text-transform:uppercase;letter-spacing:.07em}
-.cpill{display:inline-block;padding:4px 12px;border-radius:4px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.score-sub{font-size:.63rem;color:#64748B;text-align:center;margin-top:4px;text-transform:uppercase;letter-spacing:.07em}
+.cpill{display:inline-block;padding:4px 12px;border-radius:4px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .cpill-high{background:rgba(16,185,129,.14);color:#6EE7B7;border:1px solid rgba(16,185,129,.27)}
 .cpill-medium{background:rgba(245,158,11,.14);color:#FDE68A;border:1px solid rgba(245,158,11,.27)}
 .cpill-low{background:rgba(239,68,68,.14);color:#FCA5A5;border:1px solid rgba(239,68,68,.27)}
@@ -109,45 +113,46 @@ hr{border-color:#0D2040!important}
 .logic-step-notmet{background:rgba(239,68,68,.055);border-color:rgba(239,68,68,.2)}
 .logic-step-uncertain{background:rgba(245,158,11,.055);border-color:rgba(245,158,11,.18)}
 .ls-row{display:flex;align-items:flex-start;gap:10px}
-.ls-icon{font-size:1rem;flex-shrink:0;padding-top:1px}
-.ls-body{flex:1;min-width:0}
+.ls-icon{font-size:1.05rem;flex-shrink:0;padding-top:1px}
+.ls-body{flex:1;min-width:0;overflow-wrap:break-word}
 .ls-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px}
-.ls-id{font-family:monospace;font-size:.68rem;font-weight:700;color:#334155;background:#0D1F35;padding:1px 7px;border-radius:3px;border:1px solid #1A2E42}
-.ls-vbadge{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:1px 7px;border-radius:3px}
+.ls-id{font-family:monospace;font-size:.7rem;font-weight:700;color:#94A3B8;background:#0D1F35;padding:2px 8px;border-radius:3px;border:1px solid #2D4F7A}
+.ls-vbadge{font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:3px}
 .ls-vbadge-met{background:rgba(16,185,129,.18);color:#6EE7B7}
 .ls-vbadge-notmet{background:rgba(239,68,68,.18);color:#FCA5A5}
 .ls-vbadge-uncertain{background:rgba(245,158,11,.18);color:#FDE68A}
-.ls-criterion{font-size:.85rem;color:#CBD5E1;line-height:1.5}
-.ls-evidence{margin-top:7px;padding:5px 10px;background:#040B14;border-left:2px solid #1E3A5F;border-radius:0 4px 4px 0}
-.ls-elabel{font-size:.6rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#334155;display:block;margin-bottom:2px}
-.ls-etext{font-family:monospace;font-size:.79rem;color:#93C5FD;line-height:1.4;display:block}
-.ls-reasoning{margin-top:6px;padding:7px 10px;background:rgba(16,185,129,.03);border-left:2px solid rgba(16,185,129,.25);border-radius:0 4px 4px 0}
-.ls-rlabel{font-size:.6rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:rgba(16,185,129,.5);display:block;margin-bottom:3px}
-.ls-rtext{font-size:.81rem;color:#94A3B8;line-height:1.55;margin:0;padding:0}
+.ls-criterion{font-size:.88rem;color:#CBD5E1;line-height:1.55;overflow-wrap:break-word}
+.ls-evidence{margin-top:7px;padding:6px 12px;background:#040B14;border-left:2px solid #2D4F7A;border-radius:0 4px 4px 0}
+.ls-elabel{font-size:.62rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#64748B;display:block;margin-bottom:2px}
+.ls-etext{font-family:monospace;font-size:.81rem;color:#93C5FD;line-height:1.4;display:block;overflow-wrap:break-word}
+.ls-reasoning{margin-top:6px;padding:7px 10px;background:rgba(16,185,129,.03);border-left:2px solid rgba(16,185,129,.3);border-radius:0 4px 4px 0}
+.ls-rlabel{font-size:.62rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:rgba(16,185,129,.75);display:block;margin-bottom:3px}
+.ls-rtext{font-size:.84rem;color:#94A3B8;line-height:1.6;margin:0;padding:0;overflow-wrap:break-word}
 /* ─── KEY EVIDENCE GRID ─── */
-.ke-header{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#334155;margin-bottom:10px;display:flex;align-items:center;gap:10px}
-.ke-header::after{content:'';flex:1;height:1px;background:#0D2040}
+.ke-header{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#94A3B8;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.ke-header::after{content:'';flex:1;height:1px;background:#1E3A5F}
 .ke-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:8px;margin-bottom:8px}
 .ke-card{background:#0B1929;border:1px solid #1E3A5F;border-radius:8px;padding:11px 13px}
-.ke-card-disq{border-left:3px solid rgba(239,68,68,.55)}
-.ke-card-pass{border-left:3px solid rgba(16,185,129,.55)}
-.ke-cid{font-family:monospace;font-size:.67rem;font-weight:700;color:#334155;margin-bottom:4px}
-.ke-ctext{font-size:.81rem;color:#CBD5E1;line-height:1.42;margin-bottom:6px}
-.ke-ev{font-family:monospace;font-size:.77rem;color:#93C5FD;background:#060D1A;padding:3px 8px;border-radius:4px;display:block}
+.ke-card-disq{border-left:3px solid rgba(239,68,68,.7)}
+.ke-card-pass{border-left:3px solid rgba(16,185,129,.7)}
+.ke-cid{font-family:monospace;font-size:.7rem;font-weight:700;color:#94A3B8;margin-bottom:4px}
+.ke-ctext{font-size:.84rem;color:#CBD5E1;line-height:1.45;margin-bottom:6px;overflow-wrap:break-word}
+.ke-ev{font-family:monospace;font-size:.79rem;color:#93C5FD;background:#060D1A;padding:3px 8px;border-radius:4px;display:block;overflow-wrap:break-word}
 /* ─── KEYWORD HIGHLIGHTS ─── */
 .kw-eligible{background:rgba(16,185,129,.18);color:#6EE7B7;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
 .kw-ineligible{background:rgba(239,68,68,.18);color:#FCA5A5;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
 .kw-uncertain{background:rgba(245,158,11,.18);color:#FDE68A;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
 .kw-conflict{background:rgba(239,68,68,.18);color:#FCA5A5;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
 /* ─── PATIENT TABLE ─── */
-.patient-table{width:100%;border-collapse:collapse;font-size:.83rem}
-.patient-table th{background:#0D1F35;color:#334155;font-size:.67rem;font-weight:700;text-transform:uppercase;padding:7px 11px;text-align:left;border-bottom:1px solid #1E3A5F}
-.patient-table td{padding:8px 11px;color:#CBD5E1;border-bottom:1px solid #0D1F35;vertical-align:top}
+.pt-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.patient-table{width:100%;border-collapse:collapse;font-size:.85rem;min-width:320px}
+.patient-table th{background:#0D1F35;color:#94A3B8;font-size:.7rem;font-weight:700;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid #2D4F7A}
+.patient-table td{padding:9px 12px;color:#CBD5E1;border-bottom:1px solid #0D1F35;vertical-align:top;overflow-wrap:break-word}
 .patient-table tr:last-child td{border-bottom:none}
-.pt-key{font-weight:600;color:#64748B;width:38%}
+.pt-key{font-weight:600;color:#94A3B8;width:38%}
 /* ─── FOOTER ─── */
-.sci-footer{margin-top:28px;padding:14px 18px;background:#040B16;border:1px solid #0D2040;border-radius:8px;font-size:.75rem;color:#334155;line-height:1.6}
-.sci-footer strong{color:#475569}
+.sci-footer{margin-top:28px;padding:14px 18px;background:#040B16;border:1px solid #0D2040;border-radius:8px;font-size:.76rem;color:#64748B;line-height:1.7}
+.sci-footer strong{color:#94A3B8}
 </style>""", unsafe_allow_html=True)
 
 # ── Sample data ────────────────────────────────────────────────────────────────
@@ -224,9 +229,9 @@ def _patient_as_html_table(p: dict) -> str:
         if k in p and p.get(k) not in (None, [], {}, "")
     )
     return (
-        '<table class="patient-table">'
+        '<div class="pt-wrapper"><table class="patient-table">'
         "<thead><tr><th>Field</th><th>Value</th></tr></thead>"
-        f"<tbody>{rows}</tbody></table>"
+        f"<tbody>{rows}</tbody></table></div>"
     )
 
 
@@ -378,9 +383,9 @@ def _render_safety_audit(
 ) -> None:
     if verdict is None:
         st.markdown(
-            '<div class="audit-card" style="background:rgba(100,116,139,.06);border:1px solid rgba(100,116,139,.2)">'
-            '<span class="audit-badge audit-badge-pending">⏳ Audit Unavailable</span>'
-            '<p style="color:#475569;font-size:.86rem;margin:0">Pass 2 did not complete — '
+            '<div class="audit-card" style="background:rgba(100,116,139,.06);border:1px solid rgba(100,116,139,.25)">'
+            '<span class="audit-badge audit-badge-pending">⏳ Safety Audit Unavailable</span>'
+            '<p style="color:#94A3B8;font-size:.88rem;margin:0">Pass 2 did not complete — '
             'the K2 API may be under load. Re-run the analysis to attempt the safety audit.</p>'
             '</div>',
             unsafe_allow_html=True,
@@ -390,7 +395,7 @@ def _render_safety_audit(
     is_conflict = verdict == "CONFLICT_FOUND"
     card_cls    = "audit-conflict" if is_conflict else "audit-clean"
     badge_cls   = "audit-badge-conflict" if is_conflict else "audit-badge-clean"
-    badge_icon  = "⚠ CONFLICT FOUND" if is_conflict else "✔ HIGH INTEGRITY MATCH"
+    badge_icon  = "⚠️ SAFETY CONFLICT DETECTED" if is_conflict else "✔ HIGH INTEGRITY MATCH"
     label_cls   = "audit-challenge-label" if is_conflict else "audit-challenge-label audit-challenge-label-clean"
 
     conf_cls = {"HIGH": "audit-conf-high", "MEDIUM": "audit-conf-medium", "LOW": "audit-conf-low"}.get(
@@ -398,55 +403,74 @@ def _render_safety_audit(
     )
 
     criterion_html = (
-        f'<span class="audit-criterion">Criterion challenged: {_html.escape(criterion)}</span>'
+        f'<span class="audit-criterion">⚠ Criterion challenged: {_html.escape(criterion)}</span>'
         if criterion and criterion.lower() != "none" else ""
     )
     challenge_text = _html.escape(challenge) if challenge else (
         "No exploitable conflict identified after exhaustive review."
     )
 
-    st.markdown(
-        f'<div class="audit-card {card_cls}">'
-        f'<span class="audit-badge {badge_cls}">{badge_icon}</span>'
-        f'{criterion_html}'
-        f'<span class="{label_cls}">{"Devil\'s Advocate Argument" if is_conflict else "Auditor Assessment"}</span>'
-        f'<p class="audit-challenge-text">{challenge_text}</p>'
-        f'<span class="audit-conf-pill {conf_cls}">Auditor confidence: {confidence or "—"}</span>'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Advocate vs Auditor side-by-side framing
-    st.markdown('<div class="advocate-header">Internal Debate</div>', unsafe_allow_html=True)
-    adv_col, aud_col = st.columns(2, gap="medium")
-    with adv_col:
-        verdict_color = "#10B981" if pass1_verdict == "ELIGIBLE" else "#EF4444" if pass1_verdict == "INELIGIBLE" else "#F59E0B"
-        st.markdown(
-            f'<div style="background:#0B1929;border:1px solid #1E3A5F;border-left:3px solid {verdict_color};'
-            f'border-radius:8px;padding:14px 16px">'
-            f'<div style="font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;'
-            f'color:#334155;margin-bottom:8px">⚕ Advocate (Pass 1)</div>'
-            f'<div style="font-size:.85rem;color:#CBD5E1;line-height:1.55">{_html.escape(pass1_summary)}</div>'
-            f'</div>',
-            unsafe_allow_html=True,
+    # Prominent full-width red banner when auditor finds a conflict
+    conflict_banner = ""
+    if is_conflict:
+        conflict_banner = (
+            '<div class="audit-conflict-banner">'
+            '<span class="audit-conflict-title">⚠️ SAFETY CONFLICT DETECTED — CLINICAL REVIEW REQUIRED</span>'
+            '<div class="audit-conflict-body">'
+            '<strong>The skeptical auditor has flagged a potential disqualifying issue. '
+            'Do not enroll this patient without thorough clinical re-evaluation.</strong>'
+            f'<br><br>{criterion_html}'
+            '</div></div>'
         )
-    with aud_col:
-        aud_color = "#F59E0B" if is_conflict else "#10B981"
+
+    with st.container(border=True):
         st.markdown(
-            f'<div style="background:#0B1929;border:1px solid #1E3A5F;border-left:3px solid {aud_color};'
-            f'border-radius:8px;padding:14px 16px">'
-            f'<div style="font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;'
-            f'color:#334155;margin-bottom:8px">⚖ Skeptical Auditor (Pass 2)</div>'
-            f'<div style="font-size:.85rem;color:#CBD5E1;line-height:1.55">{challenge_text}</div>'
+            f'{conflict_banner}'
+            f'<div class="audit-card {card_cls}">'
+            f'<span class="audit-badge {badge_cls}">{badge_icon}</span>'
+            f'{"" if is_conflict else criterion_html}'
+            f'<span class="{label_cls}">{"Devil\'s Advocate Argument" if is_conflict else "Auditor Assessment"}</span>'
+            f'<p class="audit-challenge-text">{challenge_text}</p>'
+            f'<span class="audit-conf-pill {conf_cls}">Auditor confidence: {confidence or "—"}</span>'
             f'</div>',
             unsafe_allow_html=True,
         )
 
-    if raw:
-        with st.expander("Raw Pass 2 output", expanded=False):
-            st.text(raw)
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="advocate-header">Pass 1 Advocate vs Pass 2 Skeptical Auditor</div>', unsafe_allow_html=True)
+
+        adv_col, aud_col = st.columns(2, gap="medium")
+        with adv_col:
+            verdict_color = "#10B981" if pass1_verdict == "ELIGIBLE" else "#EF4444" if pass1_verdict == "INELIGIBLE" else "#F59E0B"
+            # Soft green background for Advocate
+            st.markdown(
+                f'<div style="background:rgba(16,185,129,0.07);border:1.5px solid rgba(16,185,129,0.3);'
+                f'border-left:4px solid {verdict_color};border-radius:10px;padding:16px 18px">'
+                f'<div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;'
+                f'color:#6EE7B7;margin-bottom:10px">⚕ Advocate — Pass 1 (Primary Audit)</div>'
+                f'<div style="font-size:.88rem;color:#CBD5E1;line-height:1.6">{_html.escape(pass1_summary)}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        with aud_col:
+            # Soft amber background for Auditor (conflict) or soft green (clean)
+            aud_border = "rgba(245,158,11,0.45)" if is_conflict else "rgba(16,185,129,0.3)"
+            aud_bg     = "rgba(245,158,11,0.07)" if is_conflict else "rgba(16,185,129,0.04)"
+            aud_lcolor = "#FDE68A" if is_conflict else "#6EE7B7"
+            aud_left   = "#F59E0B" if is_conflict else "#10B981"
+            st.markdown(
+                f'<div style="background:{aud_bg};border:1.5px solid {aud_border};'
+                f'border-left:4px solid {aud_left};border-radius:10px;padding:16px 18px">'
+                f'<div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;'
+                f'color:{aud_lcolor};margin-bottom:10px">⚖ Skeptical Auditor — Pass 2 (Safety Audit)</div>'
+                f'<div style="font-size:.88rem;color:#CBD5E1;line-height:1.6">{challenge_text}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+        if raw:
+            with st.expander("Raw Pass 2 Auditor Output", expanded=False):
+                st.text(raw)
 
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
@@ -468,12 +492,13 @@ with st.sidebar:
     st.markdown("**Demo NCT IDs**")
     for nct, lbl in [
         ("NCT04280706", "Lung cancer / EGFR ✅"),
-        ("NCT03661788", "Breast cancer"),
+        ("NCT03661788", "Breast cancer / TNBC ✅"),
         ("NCT04158791", "COVID-19"),
     ]:
         st.markdown(f"`{nct}` — {lbl}")
     st.markdown("---")
     st.caption("Build with K2 Think V2 Hackathon · 2026")
+    st.caption("The Trial Oracle — Clinical AI Division")
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -493,9 +518,9 @@ st.markdown("""
 st.markdown('<div class="section-label">Clinical Trial Identifier</div>', unsafe_allow_html=True)
 nct_id = st.text_input(
     "NCT ID", placeholder="NCT04280706", label_visibility="collapsed",
-    key="nct_id_input", help="NCT number — served from local cache instantly for NCT04280706.",
+    key="nct_id_input", help="NCT number — NCT04280706 (lung) and NCT03661788 (breast) load instantly from local cache.",
 )
-st.caption("Format: NCT + 8 digits  ·  Example: NCT04280706  ·  Loaded from local cache when available")
+st.caption("Format: NCT + 8 digits  ·  NCT04280706 (NSCLC/EGFR) · NCT03661788 (TNBC) · Both served instantly from local cache")
 st.markdown("---")
 
 # ── Session-state defaults ─────────────────────────────────────────────────────
@@ -608,9 +633,9 @@ with col_preview:
         st.markdown(_patient_as_html_table(preview), unsafe_allow_html=True)
     else:
         st.markdown(
-            '<div style="text-align:center;padding:48px 0;color:#1E3A5F">'
-            '<div style="font-size:2.5rem">⬡</div>'
-            '<div style="margin-top:10px;font-size:0.85rem">Fill the form to see the preview</div>'
+            '<div style="text-align:center;padding:48px 0">'
+            '<div style="font-size:2.5rem;color:#1E3A5F">⬡</div>'
+            '<div style="margin-top:10px;font-size:0.85rem;color:#64748B">Fill the form to see the preview</div>'
             '</div>',
             unsafe_allow_html=True,
         )
@@ -809,12 +834,13 @@ if submitted:
             pass1_verdict=verdict_label, pass1_summary=summary,
         )
     with raw_tab:
-        st.caption("Full unprocessed model output — for audit trail or regulatory review.")
+        st.caption("Full unprocessed K2 chain-of-thought — for audit trail or regulatory review.")
         raw_text = data.get("raw_reasoning", "")
         if raw_text:
-            st.text(raw_text)
+            with st.expander("View Raw K2 Chain-of-Thought Output", expanded=False):
+                st.text(raw_text)
         else:
-            st.markdown('<p style="color:#334155;font-style:italic">No raw output captured.</p>', unsafe_allow_html=True)
+            st.markdown('<p style="color:#64748B;font-style:italic">No raw output captured.</p>', unsafe_allow_html=True)
 
     disc = disclaimer or (
         "This output is an automated eligibility pre-screen generated by an AI model. "
@@ -826,19 +852,19 @@ if submitted:
         f'<div class="sci-footer"><strong>Scientific Disclaimer</strong><br>{_html.escape(disc)}<br><br>'
         f'<strong>Powered by</strong> MBZUAI-IFM/K2-Think-v2 &nbsp;·&nbsp; '
         f'<strong>Data</strong> ClinicalTrials.gov API v2 &nbsp;·&nbsp; '
-        f'<strong>Clinical AI Division · Build with K2 Think V2 Hackathon · 2026</strong></div>',
+        f'<strong>The Trial Oracle — Clinical AI Division &nbsp;·&nbsp; Build with K2 Think V2 Hackathon · 2026</strong></div>',
         unsafe_allow_html=True,
     )
 
 # ── Empty state ────────────────────────────────────────────────────────────────
 else:
     st.markdown(
-        '<div style="text-align:center;padding:48px 0 36px;color:#1E3A5F">'
+        '<div style="text-align:center;padding:48px 0 36px">'
         '<div style="font-size:3.2rem;margin-bottom:14px;color:#10B981;'
         'text-shadow:0 0 20px rgba(16,185,129,.45)">⬡</div>'
-        '<div style="font-size:1.05rem;font-weight:700;color:#334155;margin-bottom:8px">'
+        '<div style="font-size:1.05rem;font-weight:700;color:#94A3B8;margin-bottom:8px">'
         'Complete the patient form and click <em>Start Reasoning</em></div>'
-        '<div style="font-size:.86rem;max-width:480px;margin:0 auto;line-height:1.6;color:#1E3A5F">'
+        '<div style="font-size:.88rem;max-width:480px;margin:0 auto;line-height:1.65;color:#64748B">'
         'K2-Think-v2 audits every inclusion and exclusion criterion against the patient '
         'profile and returns a structured eligibility verdict with a full visual reasoning pathway.</div>'
         '</div>',

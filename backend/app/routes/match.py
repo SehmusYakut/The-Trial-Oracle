@@ -47,6 +47,11 @@ def _build_response(result: MatchResult, trial: TrialData) -> MatchResponse:
         reasoning_chain=result.criteria_verdicts,
         disqualifying_criteria=result.disqualifying_criteria,
         raw_reasoning=result.raw_reasoning,
+        audit_verdict=result.audit_verdict,
+        audit_criterion=result.audit_criterion,
+        audit_challenge=result.audit_challenge,
+        audit_confidence=result.audit_confidence,
+        audit_raw=result.audit_raw,
     )
 
 

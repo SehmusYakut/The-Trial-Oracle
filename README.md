@@ -1,6 +1,6 @@
 # The Trial Oracle 🔮
 
-A clinical reasoning engine built for the "Build with K2 Think V2" hackathon. Automates the matching process between patient data and clinical trials using the **ClinicalTrials.gov API v2** and **MBZUAI K2 Think V2**.
+A clinical reasoning engine built for the **Build with K2 Think V2 Hackathon · 2026**. Automates the matching process between patient data and clinical trials using the **ClinicalTrials.gov API v2** and **MBZUAI K2 Think V2**.
 
 ## 🏗️ Project Structure
 

@@ -163,6 +163,10 @@ class _RetryableError(Exception):
         super().__init__(f"Retryable HTTP {status}")
 
 
+class _ForbiddenError(Exception):
+    """Raised immediately on HTTP 403 — signals caller to use local fallback."""
+
+
 # ── Graceful fallback for demo resilience ───────────────────────────────────────
 # Embedded minimal data for NCT04280706 — used only when the live API is
 # unreachable after all retries, so a live demo never crashes on a 403.
@@ -348,7 +352,10 @@ async def _fetch_with_session(url: str) -> dict:
                 if last_status == 404:
                     raise HTTPException(status_code=404, detail=f"Trial not found: {url}")
 
-                if last_status in {403, 429, 500, 502, 503}:
+                if last_status == 403:
+                    raise _ForbiddenError()
+
+                if last_status in {429, 500, 502, 503}:
                     raise _RetryableError(last_status)
 
                 raise HTTPException(
@@ -403,6 +410,21 @@ async def fetch_trial(nct_id: str) -> TrialData:
         raw = await _fetch_with_session(url)
     except HTTPException:
         raise  # 404 / 502 — propagate directly
+    except _ForbiddenError:
+        _log.warning("[403] ClinicalTrials.gov blocked %s — checking fallback before raising.", nct_id)
+        # Belt-and-suspenders: re-check both fallback stores in case the
+        # JSON file was updated after the first check (e.g., hot-reload).
+        late_json = _load_json_fallback(nct_id)
+        late_embedded = _FALLBACK_TRIALS.get(nct_id)
+        fallback = late_json or late_embedded
+        if fallback is not None:
+            _log.warning("[FALLBACK] Serving %s from local data after 403 — no exception raised.", nct_id)
+            _cache.set(nct_id, fallback)
+            return fallback
+        raise HTTPException(
+            status_code=404,
+            detail=f"Trial {nct_id} not found in local cache and API is currently rate-limited.",
+        )
     except RetryError as exc:
         cause = exc.last_attempt.exception()
         if isinstance(cause, _RetryableError):
@@ -413,9 +435,7 @@ async def fetch_trial(nct_id: str) -> TrialData:
         )
         raise HTTPException(
             status_code=404,
-            detail=(
-                f"Trial {nct_id} not found in local cache and API is currently rate-limited."
-            ),
+            detail=f"Trial {nct_id} not found in local cache and API is currently rate-limited.",
         )
 
     trial = _parse_trial(raw, nct_id)

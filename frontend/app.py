@@ -1,5 +1,5 @@
-"""Streamlit frontend for The Trial Oracle — Clinical Reasoning Engine."""
-import json
+"""Streamlit frontend for The Trial Oracle — Clinical AI Division."""
+import html as _html
 import os
 import re
 import time
@@ -12,61 +12,142 @@ load_dotenv()
 
 st.set_page_config(
     page_title="The Trial Oracle",
-    page_icon="⚕",
+    page_icon="⬡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ── CSS ────────────────────────────────────────────────────────────────────────
+# ── CSS: Dark Mode Scientific Theme ───────────────────────────────────────────
 st.markdown("""<style>
 html,body,[class*="css"]{font-family:'Inter','Segoe UI',system-ui,sans-serif;font-size:14px}
 #MainMenu,footer,header{visibility:hidden}
-.stApp{background-color:#F1F5F9}
-[data-testid="stSidebar"]{background-color:#0B1929!important}
+.stApp{background-color:#060D1A!important}
+.main .block-container{padding-top:1.5rem}
+label,.stMarkdown p,.stText p{color:#CBD5E1!important}
+h1,h2,h3,h4,h5,h6{color:#E2E8F0!important}
+.stTextInput input,.stNumberInput input,.stTextArea textarea{
+  background-color:#0D1F35!important;color:#E2E8F0!important;
+  border-color:#1E3A5F!important;caret-color:#10B981!important}
+.stSelectbox [data-baseweb="select"]>div{
+  background-color:#0D1F35!important;border-color:#1E3A5F!important;color:#E2E8F0!important}
+.stSelectbox [data-baseweb="select"] svg{fill:#94A3B8!important}
+[data-testid="stForm"]{background:#0B1929;border:1px solid #1E3A5F;border-radius:12px;padding:20px}
+.stButton>button{background:#0D2A45!important;color:#93C5FD!important;border:1px solid #1E4F8C!important;border-radius:6px!important;transition:box-shadow .2s}
+.stButton>button:hover{background:#0D3660!important;box-shadow:0 0 14px rgba(16,185,129,.25)!important}
+div[data-testid="stFormSubmitButton"]>button{
+  background:linear-gradient(135deg,#059669 0%,#0D9488 100%)!important;color:#F0FDF4!important;
+  border:none!important;font-weight:700!important;box-shadow:0 0 22px rgba(16,185,129,.45)!important;border-radius:6px!important}
+div[data-testid="stFormSubmitButton"]>button:hover{box-shadow:0 0 32px rgba(16,185,129,.65)!important}
+[data-testid="stSidebar"]{background-color:#040B16!important;border-right:1px solid #0D2040!important}
 [data-testid="stSidebar"] *{color:#CBD5E1!important}
 [data-testid="stSidebar"] h1,[data-testid="stSidebar"] h2,[data-testid="stSidebar"] h3,
 [data-testid="stSidebar"] strong{color:#F1F5F9!important}
-[data-testid="stSidebar"] hr{border-color:#1E3A5F!important}
-[data-testid="stSidebar"] code{background:#1E3A5F!important;color:#7DD3FC!important;border-radius:4px;padding:2px 6px}
-.lab-header{background:linear-gradient(120deg,#0B1929 0%,#1E3A5F 60%,#0D4F8C 100%);border-radius:12px;padding:30px 40px;margin-bottom:24px;border:1px solid #1E3A5F}
-.lab-header h1{color:#F8FAFC!important;font-size:1.9rem;font-weight:700;margin:0 0 6px 0}
-.lab-header .subtitle{color:#94A3B8!important;font-size:.92rem;margin:0}
-.badge-row{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+[data-testid="stSidebar"] hr{border-color:#0D2040!important}
+[data-testid="stSidebar"] code{background:#0D2040!important;color:#6EE7B7!important;border-radius:4px;padding:2px 6px}
+.stTabs [data-baseweb="tab-list"]{background:#060D1A!important;border-bottom:1px solid #1E3A5F!important;gap:4px}
+.stTabs [data-baseweb="tab"]{color:#475569!important;background:transparent!important;padding:8px 16px!important}
+.stTabs [aria-selected="true"]{color:#10B981!important;border-bottom:2px solid #10B981!important}
+[data-testid="stMetric"]{background:#0B1929!important;border:1px solid #1E3A5F!important;border-radius:8px!important;padding:12px 16px!important}
+[data-testid="stMetricLabel"] p{color:#475569!important;font-size:.67rem!important;text-transform:uppercase!important;letter-spacing:.09em!important}
+[data-testid="stMetricValue"]{color:#10B981!important}
+.streamlit-expanderHeader{background:#0B1929!important;border:1px solid #1E3A5F!important;border-radius:6px!important;color:#CBD5E1!important}
+.streamlit-expanderContent{background:#08111E!important;border:1px solid #1E3A5F!important;border-top:none!important}
+[data-testid="stStatusWidget"]{background:#0B1929!important;border:1px solid #1E3A5F!important}
+hr{border-color:#0D2040!important}
+/* ─── AUDIT COMPONENTS ─── */
+.audit-card{border-radius:10px;padding:18px 20px;margin-bottom:4px}
+.audit-conflict{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3)}
+.audit-clean{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.25)}
+.audit-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:7px;font-size:.88rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px}
+.audit-badge-conflict{background:rgba(245,158,11,.14);color:#FDE68A;border:1.5px solid rgba(245,158,11,.4)}
+.audit-badge-clean{background:rgba(16,185,129,.14);color:#6EE7B7;border:1.5px solid rgba(16,185,129,.35);box-shadow:0 0 16px rgba(16,185,129,.18)}
+.audit-badge-pending{background:rgba(100,116,139,.14);color:#94A3B8;border:1.5px solid rgba(100,116,139,.3)}
+.audit-criterion{font-family:monospace;font-size:.82rem;color:#94A3B8;background:#060D1A;padding:5px 10px;border-radius:4px;margin-bottom:10px;display:block}
+.audit-challenge-label{font-size:.63rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:rgba(245,158,11,.6);display:block;margin-bottom:5px}
+.audit-challenge-label-clean{color:rgba(16,185,129,.55)}
+.audit-challenge-text{font-size:.88rem;color:#CBD5E1;line-height:1.6}
+.audit-conf-pill{display:inline-block;padding:3px 10px;border-radius:4px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:10px}
+.audit-conf-high{background:rgba(239,68,68,.14);color:#FCA5A5;border:1px solid rgba(239,68,68,.27)}
+.audit-conf-medium{background:rgba(245,158,11,.14);color:#FDE68A;border:1px solid rgba(245,158,11,.27)}
+.audit-conf-low{background:rgba(100,116,139,.14);color:#94A3B8;border:1px solid rgba(100,116,139,.27)}
+.advocate-header{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#334155;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.advocate-header::after{content:'';flex:1;height:1px;background:#0D2040}
+/* ─── HEADER ─── */
+.lab-header{background:linear-gradient(120deg,#040B16 0%,#07121F 55%,#04130A 100%);border-radius:12px;padding:28px 36px;margin-bottom:20px;border:1px solid #0D2040;box-shadow:0 0 45px rgba(16,185,129,.07)}
+.lab-header h1{color:#F8FAFC!important;font-size:1.85rem;font-weight:700;margin:0 0 5px 0}
+.lab-header .subtitle{color:#334155!important;font-size:.9rem;margin:0}
+.badge-row{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
 .badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
-.badge-k2{background:rgba(5,150,105,.2);color:#6EE7B7;border:1px solid rgba(5,150,105,.3)}
-.badge-api{background:rgba(59,130,246,.2);color:#93C5FD;border:1px solid rgba(59,130,246,.3)}
-.badge-v{background:rgba(139,92,246,.2);color:#C4B5FD;border:1px solid rgba(139,92,246,.3)}
-.section-label{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748B;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #E2E8F0}
-.field-hint{font-size:.72rem;color:#94A3B8;margin-top:-4px;margin-bottom:8px;font-style:italic}
-.trial-card{background:#FFF;border:1px solid #CBD5E1;border-left:4px solid #0D4F8C;border-radius:8px;padding:16px 20px;margin-bottom:16px}
-.trial-nct{font-family:monospace;font-size:.8rem;color:#0D4F8C;font-weight:700}
-.trial-title{font-size:.97rem;font-weight:600;color:#0F172A;margin:4px 0 6px 0;line-height:1.4}
-.verdict-panel{background:#FFF;border:1px solid #CBD5E1;border-radius:10px;padding:20px 24px}
-.verdict-label{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748B;margin-bottom:8px}
-.vbadge{display:inline-block;padding:7px 20px;border-radius:6px;font-size:.88rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
-.vbadge-eligible{background:#ECFDF5;color:#065F46;border:1.5px solid #6EE7B7}
-.vbadge-ineligible{background:#FEF2F2;color:#7F1D1D;border:1.5px solid #FCA5A5}
-.vbadge-uncertain{background:#FFFBEB;color:#78350F;border:1.5px solid #FDE68A}
-.score-ring{font-size:2.6rem;font-weight:800;line-height:1;text-align:center}
-.score-sub{font-size:.7rem;color:#64748B;text-align:center;margin-top:4px;text-transform:uppercase}
-.cpill{display:inline-block;padding:3px 12px;border-radius:4px;font-size:.73rem;font-weight:600;text-transform:uppercase}
-.cpill-high{background:#EFF6FF;color:#1E40AF;border:1px solid #BFDBFE}
-.cpill-medium{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A}
-.cpill-low{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
-.kw-eligible{background:#ECFDF5;color:#065F46;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
-.kw-ineligible{background:#FEF2F2;color:#7F1D1D;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
-.kw-uncertain{background:#FFFBEB;color:#78350F;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
-.kw-conflict{background:#FEF2F2;color:#7F1D1D;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
-.evidence-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:8px 12px;font-size:.82rem;color:#334155;margin:6px 0;font-family:monospace}
-.summary-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:16px 20px;font-size:.9rem;color:#1E293B;line-height:1.65}
-.patient-table{width:100%;border-collapse:collapse;font-size:.84rem}
-.patient-table th{background:#F1F5F9;color:#475569;font-size:.7rem;font-weight:700;text-transform:uppercase;padding:7px 12px;text-align:left;border-bottom:1px solid #CBD5E1}
-.patient-table td{padding:8px 12px;color:#1E293B;border-bottom:1px solid #F1F5F9;vertical-align:top}
+.badge-k2{background:rgba(16,185,129,.13);color:#6EE7B7;border:1px solid rgba(16,185,129,.27)}
+.badge-api{background:rgba(59,130,246,.13);color:#93C5FD;border:1px solid rgba(59,130,246,.27)}
+.badge-v{background:rgba(139,92,246,.13);color:#C4B5FD;border:1px solid rgba(139,92,246,.27)}
+.badge-demo{background:rgba(245,158,11,.13);color:#FDE68A;border:1px solid rgba(245,158,11,.27)}
+/* ─── SECTION LABELS ─── */
+.section-label{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#1E3A5F;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #0D2040}
+.field-hint{font-size:.71rem;color:#1E3A5F;margin-top:-4px;margin-bottom:8px;font-style:italic}
+/* ─── TRIAL CARD ─── */
+.trial-card{background:#0B1929;border:1px solid #1E3A5F;border-left:4px solid #10B981;border-radius:8px;padding:14px 18px;margin-bottom:14px;box-shadow:0 0 20px rgba(16,185,129,.08)}
+.trial-nct{font-family:monospace;font-size:.78rem;color:#10B981;font-weight:700}
+.trial-title{font-size:.94rem;font-weight:600;color:#E2E8F0;margin:4px 0 0 0;line-height:1.4}
+/* ─── VERDICT ─── */
+.verdict-panel{background:#0B1929;border:1px solid #1E3A5F;border-radius:10px;padding:16px 18px}
+.verdict-label{font-size:.62rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#334155;margin-bottom:8px}
+.vbadge{display:inline-block;padding:6px 16px;border-radius:6px;font-size:.84rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.vbadge-eligible{background:rgba(16,185,129,.14);color:#6EE7B7;border:1.5px solid rgba(16,185,129,.35)}
+.vbadge-ineligible{background:rgba(239,68,68,.14);color:#FCA5A5;border:1.5px solid rgba(239,68,68,.35)}
+.vbadge-uncertain{background:rgba(245,158,11,.14);color:#FDE68A;border:1.5px solid rgba(245,158,11,.35)}
+.score-ring{font-size:2.3rem;font-weight:800;line-height:1;text-align:center}
+.score-sub{font-size:.62rem;color:#334155;text-align:center;margin-top:4px;text-transform:uppercase;letter-spacing:.07em}
+.cpill{display:inline-block;padding:4px 12px;border-radius:4px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.cpill-high{background:rgba(16,185,129,.14);color:#6EE7B7;border:1px solid rgba(16,185,129,.27)}
+.cpill-medium{background:rgba(245,158,11,.14);color:#FDE68A;border:1px solid rgba(245,158,11,.27)}
+.cpill-low{background:rgba(239,68,68,.14);color:#FCA5A5;border:1px solid rgba(239,68,68,.27)}
+/* ─── LOGIC TREE (K2 Reasoning Pathway) ─── */
+.logic-tree{display:flex;flex-direction:column;gap:7px;padding:2px 0 6px}
+.logic-step{border-radius:8px;padding:12px 14px;border:1px solid transparent}
+.logic-step-met{background:rgba(16,185,129,.055);border-color:rgba(16,185,129,.2)}
+.logic-step-notmet{background:rgba(239,68,68,.055);border-color:rgba(239,68,68,.2)}
+.logic-step-uncertain{background:rgba(245,158,11,.055);border-color:rgba(245,158,11,.18)}
+.ls-row{display:flex;align-items:flex-start;gap:10px}
+.ls-icon{font-size:1rem;flex-shrink:0;padding-top:1px}
+.ls-body{flex:1;min-width:0}
+.ls-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px}
+.ls-id{font-family:monospace;font-size:.68rem;font-weight:700;color:#334155;background:#0D1F35;padding:1px 7px;border-radius:3px;border:1px solid #1A2E42}
+.ls-vbadge{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:1px 7px;border-radius:3px}
+.ls-vbadge-met{background:rgba(16,185,129,.18);color:#6EE7B7}
+.ls-vbadge-notmet{background:rgba(239,68,68,.18);color:#FCA5A5}
+.ls-vbadge-uncertain{background:rgba(245,158,11,.18);color:#FDE68A}
+.ls-criterion{font-size:.85rem;color:#CBD5E1;line-height:1.5}
+.ls-evidence{margin-top:7px;padding:5px 10px;background:#040B14;border-left:2px solid #1E3A5F;border-radius:0 4px 4px 0}
+.ls-elabel{font-size:.6rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#334155;display:block;margin-bottom:2px}
+.ls-etext{font-family:monospace;font-size:.79rem;color:#93C5FD;line-height:1.4;display:block}
+.ls-reasoning{margin-top:6px;padding:7px 10px;background:rgba(16,185,129,.03);border-left:2px solid rgba(16,185,129,.25);border-radius:0 4px 4px 0}
+.ls-rlabel{font-size:.6rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:rgba(16,185,129,.5);display:block;margin-bottom:3px}
+.ls-rtext{font-size:.81rem;color:#94A3B8;line-height:1.55;margin:0;padding:0}
+/* ─── KEY EVIDENCE GRID ─── */
+.ke-header{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#334155;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.ke-header::after{content:'';flex:1;height:1px;background:#0D2040}
+.ke-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:8px;margin-bottom:8px}
+.ke-card{background:#0B1929;border:1px solid #1E3A5F;border-radius:8px;padding:11px 13px}
+.ke-card-disq{border-left:3px solid rgba(239,68,68,.55)}
+.ke-card-pass{border-left:3px solid rgba(16,185,129,.55)}
+.ke-cid{font-family:monospace;font-size:.67rem;font-weight:700;color:#334155;margin-bottom:4px}
+.ke-ctext{font-size:.81rem;color:#CBD5E1;line-height:1.42;margin-bottom:6px}
+.ke-ev{font-family:monospace;font-size:.77rem;color:#93C5FD;background:#060D1A;padding:3px 8px;border-radius:4px;display:block}
+/* ─── KEYWORD HIGHLIGHTS ─── */
+.kw-eligible{background:rgba(16,185,129,.18);color:#6EE7B7;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
+.kw-ineligible{background:rgba(239,68,68,.18);color:#FCA5A5;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
+.kw-uncertain{background:rgba(245,158,11,.18);color:#FDE68A;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
+.kw-conflict{background:rgba(239,68,68,.18);color:#FCA5A5;padding:1px 5px;border-radius:3px;font-weight:600;font-size:.85em}
+/* ─── PATIENT TABLE ─── */
+.patient-table{width:100%;border-collapse:collapse;font-size:.83rem}
+.patient-table th{background:#0D1F35;color:#334155;font-size:.67rem;font-weight:700;text-transform:uppercase;padding:7px 11px;text-align:left;border-bottom:1px solid #1E3A5F}
+.patient-table td{padding:8px 11px;color:#CBD5E1;border-bottom:1px solid #0D1F35;vertical-align:top}
 .patient-table tr:last-child td{border-bottom:none}
-.pt-key{font-weight:600;color:#334155;width:38%}
-.sci-footer{margin-top:32px;padding:16px 20px;background:#0B1929;border-radius:8px;font-size:.78rem;color:#64748B;line-height:1.6}
-.sci-footer strong{color:#94A3B8}
-div[data-testid="stFormSubmitButton"]>button{border-radius:6px!important;font-weight:700!important}
+.pt-key{font-weight:600;color:#64748B;width:38%}
+/* ─── FOOTER ─── */
+.sci-footer{margin-top:28px;padding:14px 18px;background:#040B16;border:1px solid #0D2040;border-radius:8px;font-size:.75rem;color:#334155;line-height:1.6}
+.sci-footer strong{color:#475569}
 </style>""", unsafe_allow_html=True)
 
 # ── Sample data ────────────────────────────────────────────────────────────────
@@ -166,7 +247,7 @@ def _highlight_keywords(text: str) -> str:
 
 
 def _score_color(s: float) -> str:
-    return "#059669" if s >= 0.75 else "#D97706" if s >= 0.40 else "#DC2626"
+    return "#10B981" if s >= 0.75 else "#F59E0B" if s >= 0.40 else "#EF4444"
 
 
 def _verdict_badge(label: str) -> str:
@@ -179,9 +260,198 @@ def _conf_pill(conf: str) -> str:
     return f'<span class="cpill cpill-{conf.lower()}">{conf} confidence</span>'
 
 
+# ── Logic Tree renderer ────────────────────────────────────────────────────────
+_VERDICT_META = {
+    "MET":       ("✅", "logic-step-met",       "ls-vbadge-met",       "MET"),
+    "NOT_MET":   ("❌", "logic-step-notmet",    "ls-vbadge-notmet",    "NOT MET"),
+    "UNCERTAIN": ("⚬",  "logic-step-uncertain", "ls-vbadge-uncertain", "UNCERTAIN"),
+}
+
+
+def _render_logic_tree(items: list) -> None:
+    if not items:
+        st.markdown(
+            '<p style="color:#334155;font-style:italic;padding:12px 0">No criteria recorded.</p>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    n_met       = sum(1 for v in items if v.get("verdict") == "MET")
+    n_notmet    = sum(1 for v in items if v.get("verdict") == "NOT_MET")
+    n_uncertain = sum(1 for v in items if v.get("verdict") == "UNCERTAIN")
+
+    mc1, mc2, mc3, mc4 = st.columns(4)
+    mc1.metric("Total",        len(items))
+    mc2.metric("✅ Met",        n_met)
+    mc3.metric("❌ Not Met",    n_notmet)
+    mc4.metric("⚬ Uncertain",  n_uncertain)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    cards = ['<div class="logic-tree">']
+    for item in items:
+        cid      = _html.escape(item.get("criterion_id", ""))
+        verdict  = item.get("verdict", "UNCERTAIN")
+        ctext    = _html.escape(item.get("criterion_text", ""))
+        evidence = _html.escape(item.get("patient_evidence", "") or "")
+        reasoning = _html.escape(item.get("reasoning", "") or "")
+
+        icon, step_cls, badge_cls, vlabel = _VERDICT_META.get(
+            verdict, ("⚬", "logic-step-uncertain", "ls-vbadge-uncertain", "UNCERTAIN")
+        )
+
+        ev_html = (
+            f'<div class="ls-evidence">'
+            f'<span class="ls-elabel">Patient Data</span>'
+            f'<span class="ls-etext">{evidence}</span>'
+            f'</div>'
+        ) if evidence else ""
+
+        re_html = (
+            f'<div class="ls-reasoning">'
+            f'<span class="ls-rlabel">K2 Analysis</span>'
+            f'<p class="ls-rtext">{reasoning}</p>'
+            f'</div>'
+        ) if reasoning else ""
+
+        cards.append(
+            f'<div class="logic-step {step_cls}">'
+            f'<div class="ls-row">'
+            f'<span class="ls-icon">{icon}</span>'
+            f'<div class="ls-body">'
+            f'<div class="ls-top">'
+            f'<span class="ls-id">{cid}</span>'
+            f'<span class="ls-vbadge {badge_cls}">{vlabel}</span>'
+            f'</div>'
+            f'<div class="ls-criterion">{ctext}</div>'
+            f'</div></div>'
+            f'{ev_html}{re_html}'
+            f'</div>'
+        )
+    cards.append('</div>')
+    st.markdown("\n".join(cards), unsafe_allow_html=True)
+
+
+# ── Key Evidence renderer ──────────────────────────────────────────────────────
+def _render_key_evidence(reasoning_chain: list) -> None:
+    disq    = [v for v in reasoning_chain if v.get("verdict") == "NOT_MET"][:4]
+    passing = [v for v in reasoning_chain if v.get("verdict") == "MET"][:4]
+    if not disq and not passing:
+        return
+
+    st.markdown('<div class="ke-header">Key Evidence</div>', unsafe_allow_html=True)
+    cards = []
+    for item in disq:
+        cid   = _html.escape(item.get("criterion_id", ""))
+        ctext = _html.escape(item.get("criterion_text", ""))
+        ev    = _html.escape(item.get("patient_evidence", "") or "")
+        ev_html = f'<span class="ke-ev">{ev}</span>' if ev else ""
+        cards.append(
+            f'<div class="ke-card ke-card-disq">'
+            f'<div class="ke-cid">❌ {cid} · CONFLICT</div>'
+            f'<div class="ke-ctext">{ctext[:130]}{"…" if len(ctext) > 130 else ""}</div>'
+            f'{ev_html}</div>'
+        )
+    for item in passing:
+        cid   = _html.escape(item.get("criterion_id", ""))
+        ctext = _html.escape(item.get("criterion_text", ""))
+        ev    = _html.escape(item.get("patient_evidence", "") or "")
+        ev_html = f'<span class="ke-ev">{ev}</span>' if ev else ""
+        cards.append(
+            f'<div class="ke-card ke-card-pass">'
+            f'<div class="ke-cid">✅ {cid} · CONFIRMED</div>'
+            f'<div class="ke-ctext">{ctext[:130]}{"…" if len(ctext) > 130 else ""}</div>'
+            f'{ev_html}</div>'
+        )
+    st.markdown(f'<div class="ke-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
+
+
+# ── Safety Audit renderer ─────────────────────────────────────────────────────
+def _render_safety_audit(
+    verdict: str | None,
+    criterion: str,
+    challenge: str,
+    confidence: str,
+    raw: str,
+    pass1_verdict: str = "",
+    pass1_summary: str = "",
+) -> None:
+    if verdict is None:
+        st.markdown(
+            '<div class="audit-card" style="background:rgba(100,116,139,.06);border:1px solid rgba(100,116,139,.2)">'
+            '<span class="audit-badge audit-badge-pending">⏳ Audit Unavailable</span>'
+            '<p style="color:#475569;font-size:.86rem;margin:0">Pass 2 did not complete — '
+            'the K2 API may be under load. Re-run the analysis to attempt the safety audit.</p>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    is_conflict = verdict == "CONFLICT_FOUND"
+    card_cls    = "audit-conflict" if is_conflict else "audit-clean"
+    badge_cls   = "audit-badge-conflict" if is_conflict else "audit-badge-clean"
+    badge_icon  = "⚠ CONFLICT FOUND" if is_conflict else "✔ HIGH INTEGRITY MATCH"
+    label_cls   = "audit-challenge-label" if is_conflict else "audit-challenge-label audit-challenge-label-clean"
+
+    conf_cls = {"HIGH": "audit-conf-high", "MEDIUM": "audit-conf-medium", "LOW": "audit-conf-low"}.get(
+        (confidence or "").upper(), "audit-conf-low"
+    )
+
+    criterion_html = (
+        f'<span class="audit-criterion">Criterion challenged: {_html.escape(criterion)}</span>'
+        if criterion and criterion.lower() != "none" else ""
+    )
+    challenge_text = _html.escape(challenge) if challenge else (
+        "No exploitable conflict identified after exhaustive review."
+    )
+
+    st.markdown(
+        f'<div class="audit-card {card_cls}">'
+        f'<span class="audit-badge {badge_cls}">{badge_icon}</span>'
+        f'{criterion_html}'
+        f'<span class="{label_cls}">{"Devil\'s Advocate Argument" if is_conflict else "Auditor Assessment"}</span>'
+        f'<p class="audit-challenge-text">{challenge_text}</p>'
+        f'<span class="audit-conf-pill {conf_cls}">Auditor confidence: {confidence or "—"}</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Advocate vs Auditor side-by-side framing
+    st.markdown('<div class="advocate-header">Internal Debate</div>', unsafe_allow_html=True)
+    adv_col, aud_col = st.columns(2, gap="medium")
+    with adv_col:
+        verdict_color = "#10B981" if pass1_verdict == "ELIGIBLE" else "#EF4444" if pass1_verdict == "INELIGIBLE" else "#F59E0B"
+        st.markdown(
+            f'<div style="background:#0B1929;border:1px solid #1E3A5F;border-left:3px solid {verdict_color};'
+            f'border-radius:8px;padding:14px 16px">'
+            f'<div style="font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;'
+            f'color:#334155;margin-bottom:8px">⚕ Advocate (Pass 1)</div>'
+            f'<div style="font-size:.85rem;color:#CBD5E1;line-height:1.55">{_html.escape(pass1_summary)}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    with aud_col:
+        aud_color = "#F59E0B" if is_conflict else "#10B981"
+        st.markdown(
+            f'<div style="background:#0B1929;border:1px solid #1E3A5F;border-left:3px solid {aud_color};'
+            f'border-radius:8px;padding:14px 16px">'
+            f'<div style="font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;'
+            f'color:#334155;margin-bottom:8px">⚖ Skeptical Auditor (Pass 2)</div>'
+            f'<div style="font-size:.85rem;color:#CBD5E1;line-height:1.55">{challenge_text}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    if raw:
+        with st.expander("Raw Pass 2 output", expanded=False):
+            st.text(raw)
+
+
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### ⚕ Trial Oracle")
+    st.markdown("### ⚕ The Trial Oracle")
     st.markdown("---")
     st.markdown("**Configuration**")
     backend_url = st.text_input(
@@ -195,39 +465,40 @@ with st.sidebar:
     st.markdown("**Data Source**")
     st.code("ClinicalTrials.gov API v2", language=None)
     st.markdown("---")
-    st.markdown("**Sample NCT IDs**")
+    st.markdown("**Demo NCT IDs**")
     for nct, lbl in [
-        ("NCT04280706", "Lung cancer / EGFR"),
+        ("NCT04280706", "Lung cancer / EGFR ✅"),
         ("NCT03661788", "Breast cancer"),
         ("NCT04158791", "COVID-19"),
     ]:
         st.markdown(f"`{nct}` — {lbl}")
     st.markdown("---")
-    st.caption("Build with K2 Think V2 Hackathon · 2025")
+    st.caption("Build with K2 Think V2 Hackathon · 2026")
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="lab-header">
     <h1>⚕ The Trial Oracle</h1>
-    <p class="subtitle">Clinical Reasoning Engine · Automated Eligibility Matching</p>
+    <p class="subtitle">Clinical AI Division · Automated Eligibility Matching · Dual-Pass K2 Reasoning</p>
     <div class="badge-row">
         <span class="badge badge-k2">Powered by K2-Think-v2</span>
         <span class="badge badge-api">ClinicalTrials.gov API v2</span>
-        <span class="badge badge-v">v1.0.0</span>
+        <span class="badge badge-demo">Devil's Advocate Audit</span>
+        <span class="badge badge-v">v2.0.0 · 2026</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── NCT ID (outside form) ──────────────────────────────────────────────────────
+# ── NCT ID input ───────────────────────────────────────────────────────────────
 st.markdown('<div class="section-label">Clinical Trial Identifier</div>', unsafe_allow_html=True)
 nct_id = st.text_input(
     "NCT ID", placeholder="NCT04280706", label_visibility="collapsed",
-    key="nct_id_input", help="NCT number — fetched live with 403-resilient retry.",
+    key="nct_id_input", help="NCT number — served from local cache instantly for NCT04280706.",
 )
-st.caption("Format: NCT + 8 digits  ·  Example: NCT04280706")
+st.caption("Format: NCT + 8 digits  ·  Example: NCT04280706  ·  Loaded from local cache when available")
 st.markdown("---")
 
-# ── Session-state defaults (set once; never overwrite user edits) ──────────────
+# ── Session-state defaults ─────────────────────────────────────────────────────
 _DEFAULTS: dict = {
     "pf_age": 45,
     "pf_sex": "female",
@@ -246,11 +517,10 @@ for _k, _v in _DEFAULTS.items():
 # ── Two-column layout ──────────────────────────────────────────────────────────
 col_form, col_preview = st.columns([3, 2], gap="large")
 
-# ── LEFT: st.form ─────────────────────────────────────────────────────────────
+# ── LEFT: patient form ────────────────────────────────────────────────────────
 with col_form:
     st.markdown('<div class="section-label">Patient Data Entry</div>', unsafe_allow_html=True)
 
-    # Load Sample — pre-populates session_state keys before the form renders
     if st.button("Load Sample Patient  (NSCLC / EGFR)", help="Pre-fill with a demo NSCLC patient"):
         for k, v in _SAMPLE.items():
             st.session_state[k] = v
@@ -259,19 +529,11 @@ with col_form:
     st.markdown("<br>", unsafe_allow_html=True)
 
     with st.form("patient_form", clear_on_submit=False):
-
-        # Demographics
         d1, d2, d3 = st.columns([2, 2, 2])
         with d1:
-            st.number_input(
-                "Age (years)", min_value=1, max_value=120, step=1, key="pf_age",
-            )
+            st.number_input("Age (years)", min_value=1, max_value=120, step=1, key="pf_age")
         with d2:
-            st.selectbox(
-                "Biological Sex",
-                options=["female", "male", "other"],
-                key="pf_sex",
-            )
+            st.selectbox("Biological Sex", options=["female", "male", "other"], key="pf_sex")
         with d3:
             st.selectbox(
                 "ECOG PS",
@@ -282,51 +544,41 @@ with col_form:
 
         st.markdown("---")
 
-        # Diagnoses
         st.text_area(
-            "Active Diagnoses",
-            height=75, key="pf_diagnoses",
+            "Active Diagnoses", height=75, key="pf_diagnoses",
             placeholder="Non-small cell lung cancer, stage IIIB\nHypertension",
         )
         st.markdown('<div class="field-hint">One diagnosis per line — ICD labels or clinical terms</div>', unsafe_allow_html=True)
 
-        # Biomarkers & Medications
         bm_col, med_col = st.columns(2, gap="medium")
         with bm_col:
             st.text_area(
-                "Biomarkers / Lab Values",
-                height=105, key="pf_biomarkers",
+                "Biomarkers / Lab Values", height=105, key="pf_biomarkers",
                 placeholder="EGFR: exon19del\nPD-L1: 45%\neGFR: 72",
             )
             st.markdown('<div class="field-hint">Format: KEY: VALUE — one per line</div>', unsafe_allow_html=True)
         with med_col:
             st.text_area(
-                "Current Medications",
-                height=105, key="pf_medications",
+                "Current Medications", height=105, key="pf_medications",
                 placeholder="Amlodipine 5 mg\nAspirin 81 mg",
             )
             st.markdown('<div class="field-hint">One medication per line</div>', unsafe_allow_html=True)
 
-        # History & Prior therapies
         h_col, pt_col = st.columns(2, gap="medium")
         with h_col:
             st.text_area(
-                "Medical History",
-                height=85, key="pf_history",
+                "Medical History", height=85, key="pf_history",
                 placeholder="Never-smoker\nNo autoimmune disease",
             )
         with pt_col:
             st.text_area(
-                "Prior Therapies",
-                height=85, key="pf_prior_therapies",
+                "Prior Therapies", height=85, key="pf_prior_therapies",
                 placeholder="Carboplatin/Paclitaxel x4 cycles (2022)",
             )
         st.markdown('<div class="field-hint">One entry per line for both columns above</div>', unsafe_allow_html=True)
 
-        # Notes
         st.text_area(
-            "Clinical Notes",
-            height=65, key="pf_notes",
+            "Clinical Notes", height=65, key="pf_notes",
             placeholder="Patient is ambulatory. No active infections.",
         )
 
@@ -335,7 +587,7 @@ with col_form:
             "⚡  Start Reasoning", type="primary", use_container_width=True,
         )
 
-# ── RIGHT: Patient profile preview ────────────────────────────────────────────
+# ── RIGHT: patient profile preview ────────────────────────────────────────────
 with col_preview:
     st.markdown('<div class="section-label">Patient Profile Preview</div>', unsafe_allow_html=True)
     st.caption("Reflects current form values — exactly what K2 will receive.")
@@ -356,8 +608,8 @@ with col_preview:
         st.markdown(_patient_as_html_table(preview), unsafe_allow_html=True)
     else:
         st.markdown(
-            '<div style="text-align:center;padding:48px 0;color:#94A3B8">'
-            '<div style="font-size:2.5rem">📋</div>'
+            '<div style="text-align:center;padding:48px 0;color:#1E3A5F">'
+            '<div style="font-size:2.5rem">⬡</div>'
             '<div style="margin-top:10px;font-size:0.85rem">Fill the form to see the preview</div>'
             '</div>',
             unsafe_allow_html=True,
@@ -382,7 +634,7 @@ if submitted:
 
     with st.status("Running eligibility analysis…", expanded=True) as status:
         st.write(f"**[1/3]** Fetching trial `{nct_clean}`…")
-        st.caption("_Checking local demo cache first; live API used as fallback (4 retry attempts with browser headers)._")
+        st.caption("_Checking local demo cache first — live API used as fallback (4 retry attempts with browser headers)._")
 
         payload = {"nct_id": nct_clean, "patient": patient_dict}
         try:
@@ -413,8 +665,8 @@ if submitted:
             status.update(label="Not in demo cache", state="error")
             st.warning(
                 "**Demo Mode Active: Please use NCT04280706** — "
-                f"Trial **{nct_clean}** is not in the local demo cache and the live API is currently rate-limited. "
-                "Enter **NCT04280706** to see a full analysis.",
+                f"Trial **{nct_clean}** is not in the local demo cache and the live API is "
+                "currently rate-limited. Enter **NCT04280706** to see a full analysis.",
                 icon="⚠️",
             )
             st.stop()
@@ -436,43 +688,50 @@ if submitted:
             st.error(f"Backend returned HTTP **{response.status_code}**: {detail}")
             st.stop()
 
-        st.write("**[2/3]** Trial data received — sending patient profile to K2-Think-v2…")
+        st.write("**[2/4]** Trial data received — Pass 1: K2 eligibility audit running…")
         st.caption("_K2 performs chain-of-thought analysis across every criterion. This takes 30–90 s._")
         data = response.json()
 
-        st.write("**[3/3]** Structuring reasoning output…")
+        st.write("**[3/4]** Pass 2: Devil's Advocate safety audit running…")
+        st.caption("_A second K2 instance plays skeptical auditor — searching for any disqualifying edge case._")
+
+        st.write("**[4/4]** Structuring dual-pass reasoning output…")
         time.sleep(0.2)
         status.update(
             label=f"Analysis complete — {data.get('eligibility_label', '?')}",
             state="complete",
         )
 
-    trial_title     = data.get("trial_title", nct_clean)
-    verdict_label   = data.get("eligibility_label", "UNCERTAIN")
-    score           = data.get("eligibility_score", 0.0)
-    confidence      = data.get("confidence", "LOW")
-    summary         = data.get("summary", "")
-    disqualifying   = data.get("disqualifying_criteria", [])
-    reasoning_chain = data.get("reasoning_chain", [])
-    disclaimer      = data.get("disclaimer", "")
+    trial_title      = data.get("trial_title", nct_clean)
+    verdict_label    = data.get("eligibility_label", "UNCERTAIN")
+    score            = data.get("eligibility_score", 0.0)
+    confidence       = data.get("confidence", "LOW")
+    summary          = data.get("summary", "")
+    disqualifying    = data.get("disqualifying_criteria", [])
+    reasoning_chain  = data.get("reasoning_chain", [])
+    disclaimer       = data.get("disclaimer", "")
+    audit_verdict    = data.get("audit_verdict")       # CONFLICT_FOUND | HIGH_INTEGRITY_MATCH | None
+    audit_criterion  = data.get("audit_criterion", "")
+    audit_challenge  = data.get("audit_challenge", "")
+    audit_confidence = data.get("audit_confidence", "")
+    audit_raw        = data.get("audit_raw", "")
 
-    # Trial card
+    # ── Trial card ────────────────────────────────────────────────────────────
     st.markdown(
         f'<div class="trial-card">'
-        f'<div class="trial-nct">{nct_clean}</div>'
-        f'<div class="trial-title">{trial_title}</div>'
+        f'<div class="trial-nct">{_html.escape(nct_clean)}</div>'
+        f'<div class="trial-title">{_html.escape(trial_title)}</div>'
         f'</div>',
         unsafe_allow_html=True,
     )
 
-    # Verdict row
+    # ── Verdict row ───────────────────────────────────────────────────────────
     st.markdown("#### Eligibility Assessment")
     vc1, vc2, vc3, vc4 = st.columns([3, 1, 1, 1], gap="medium")
     with vc1:
         st.markdown('<div class="verdict-label">Clinical Summary</div>', unsafe_allow_html=True)
 
         def _summary_words(text: str):
-            """Yield words one at a time for a live-typewriter streaming effect."""
             words = text.split()
             for i, word in enumerate(words):
                 yield word + (" " if i < len(words) - 1 else "")
@@ -484,7 +743,8 @@ if submitted:
         st.markdown(
             f'<div class="verdict-panel" style="text-align:center">'
             f'<div class="verdict-label">Score</div>'
-            f'<div class="score-ring" style="color:{c}">{score:.0%}</div>'
+            f'<div class="score-ring" style="color:{c};text-shadow:0 0 14px {c}55">'
+            f'{score:.0%}</div>'
             f'<div class="score-sub">Eligibility</div></div>',
             unsafe_allow_html=True,
         )
@@ -504,6 +764,14 @@ if submitted:
         )
 
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Eligibility Confidence Score metric ───────────────────────────────────
+    sm1, sm2, sm3, sm4 = st.columns(4)
+    sm1.metric("Eligibility Score", f"{score:.0%}", help="0–100 % composite from per-criterion verdicts")
+    sm2.metric("Inclusion Criteria", sum(1 for v in reasoning_chain if v.get("criterion_id", "").startswith("INC")))
+    sm3.metric("Exclusion Criteria", sum(1 for v in reasoning_chain if v.get("criterion_id", "").startswith("EXC")))
+    sm4.metric("Conflicts Found", len(disqualifying))
+
     if disqualifying:
         st.error(
             "**Disqualifying exclusion criteria:** " +
@@ -511,68 +779,42 @@ if submitted:
             icon="✘",
         )
 
-    # Reasoning chain
-    st.markdown("#### Step-by-Step Reasoning Chain")
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Key Evidence section ──────────────────────────────────────────────────
+    _render_key_evidence(reasoning_chain)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Logic Tree (K2 Reasoning Pathway) ────────────────────────────────────
+    st.markdown("#### K2 Reasoning Pathway")
+    st.caption("Each card shows one criterion, K2's analysis, and the matching patient evidence.")
+
     inclusion_items = [v for v in reasoning_chain if v.get("criterion_id", "").startswith("INC")]
     exclusion_items = [v for v in reasoning_chain if v.get("criterion_id", "").startswith("EXC")]
 
-    VERDICT_ICON  = {"MET": "✔", "NOT_MET": "✘", "UNCERTAIN": "⚬"}
-    VERDICT_COLOR = {"MET": "#059669", "NOT_MET": "#DC2626", "UNCERTAIN": "#D97706"}
-
-    def _render_chain(items: list) -> None:
-        if not items:
-            st.caption("No criteria recorded in this section.")
-            return
-        mc1, mc2, mc3, mc4 = st.columns(4)
-        mc1.metric("Total",       len(items))
-        mc2.metric("Met ✔",       sum(1 for v in items if v.get("verdict") == "MET"))
-        mc3.metric("Not Met ✘",   sum(1 for v in items if v.get("verdict") == "NOT_MET"))
-        mc4.metric("Uncertain ⚬", sum(1 for v in items if v.get("verdict") == "UNCERTAIN"))
-        st.markdown("<br>", unsafe_allow_html=True)
-        for item in items:
-            cid       = item.get("criterion_id", "")
-            verdict   = item.get("verdict", "UNCERTAIN")
-            ctext     = item.get("criterion_text", "")
-            reasoning = item.get("reasoning", "")
-            evidence  = item.get("patient_evidence", "")
-            icon  = VERDICT_ICON.get(verdict, "⚬")
-            color = VERDICT_COLOR.get(verdict, "#D97706")
-            label = verdict.replace("_", " ")
-            with st.expander(
-                f"{icon}  **{cid}** — {ctext[:95]}{'…' if len(ctext) > 95 else ''}",
-                expanded=(verdict == "NOT_MET"),
-            ):
-                hdr, _ = st.columns([1, 4])
-                with hdr:
-                    st.markdown(
-                        f'<span style="background:{color}22;color:{color};'
-                        f'border:1px solid {color}55;padding:3px 10px;'
-                        f'border-radius:4px;font-size:.78rem;font-weight:700">'
-                        f'{label}</span>',
-                        unsafe_allow_html=True,
-                    )
-                st.markdown("**Criterion text**")
-                st.markdown(f"> {ctext}")
-                if evidence:
-                    st.markdown("**Patient evidence**")
-                    st.markdown(f'<div class="evidence-box">{evidence}</div>', unsafe_allow_html=True)
-                if reasoning:
-                    st.markdown("**K2 reasoning**")
-                    st.markdown(_highlight_keywords(reasoning), unsafe_allow_html=True)
-
-    inc_tab, exc_tab = st.tabs([
+    inc_tab, exc_tab, audit_tab, raw_tab = st.tabs([
         f"Inclusion Criteria  ({len(inclusion_items)})",
         f"Exclusion Criteria  ({len(exclusion_items)})",
+        "⚖ Safety Audit",
+        "Raw K2 Chain-of-Thought",
     ])
     with inc_tab:
-        _render_chain(inclusion_items)
+        _render_logic_tree(inclusion_items)
     with exc_tab:
-        _render_chain(exclusion_items)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    with st.expander("Raw K2-Think-v2 Chain-of-Thought  (audit / regulatory review)", expanded=False):
-        st.caption("Full unprocessed model output — use for audit trail or regulatory documentation.")
-        st.text(data.get("raw_reasoning", ""))
+        _render_logic_tree(exclusion_items)
+    with audit_tab:
+        _render_safety_audit(
+            audit_verdict, audit_criterion, audit_challenge, audit_confidence, audit_raw,
+            pass1_verdict=verdict_label, pass1_summary=summary,
+        )
+    with raw_tab:
+        st.caption("Full unprocessed model output — for audit trail or regulatory review.")
+        raw_text = data.get("raw_reasoning", "")
+        if raw_text:
+            st.text(raw_text)
+        else:
+            st.markdown('<p style="color:#334155;font-style:italic">No raw output captured.</p>', unsafe_allow_html=True)
 
     disc = disclaimer or (
         "This output is an automated eligibility pre-screen generated by an AI model. "
@@ -581,23 +823,24 @@ if submitted:
         "or clinical research coordinator before any patient action is taken."
     )
     st.markdown(
-        f'<div class="sci-footer"><strong>Scientific Disclaimer</strong><br>{disc}<br><br>'
+        f'<div class="sci-footer"><strong>Scientific Disclaimer</strong><br>{_html.escape(disc)}<br><br>'
         f'<strong>Powered by</strong> MBZUAI-IFM/K2-Think-v2 &nbsp;·&nbsp; '
         f'<strong>Data</strong> ClinicalTrials.gov API v2 &nbsp;·&nbsp; '
-        f'<strong>Build with K2 Think V2 Hackathon · 2025</strong></div>',
+        f'<strong>Clinical AI Division · Build with K2 Think V2 Hackathon · 2026</strong></div>',
         unsafe_allow_html=True,
     )
 
 # ── Empty state ────────────────────────────────────────────────────────────────
 else:
     st.markdown(
-        '<div style="text-align:center;padding:48px 0 36px;color:#94A3B8">'
-        '<div style="font-size:3.2rem;margin-bottom:14px">⚕</div>'
-        '<div style="font-size:1.1rem;font-weight:700;color:#475569;margin-bottom:8px">'
+        '<div style="text-align:center;padding:48px 0 36px;color:#1E3A5F">'
+        '<div style="font-size:3.2rem;margin-bottom:14px;color:#10B981;'
+        'text-shadow:0 0 20px rgba(16,185,129,.45)">⬡</div>'
+        '<div style="font-size:1.05rem;font-weight:700;color:#334155;margin-bottom:8px">'
         'Complete the patient form and click <em>Start Reasoning</em></div>'
-        '<div style="font-size:.87rem;max-width:460px;margin:0 auto;line-height:1.6">'
+        '<div style="font-size:.86rem;max-width:480px;margin:0 auto;line-height:1.6;color:#1E3A5F">'
         'K2-Think-v2 audits every inclusion and exclusion criterion against the patient '
-        'profile and returns a structured eligibility verdict with a full reasoning chain.</div>'
+        'profile and returns a structured eligibility verdict with a full visual reasoning pathway.</div>'
         '</div>',
         unsafe_allow_html=True,
     )

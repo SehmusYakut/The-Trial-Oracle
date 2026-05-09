@@ -1,5 +1,6 @@
 """Service for calling the MBZUAI K2-Think-v2 model to match patients against trials."""
 import json
+import logging
 import os
 import re
 
@@ -12,6 +13,8 @@ from backend.app.models.patient import (
     PatientData,
 )
 from backend.app.models.trial import TrialData
+
+_log = logging.getLogger(__name__)
 
 _K2_ENDPOINT = "https://api.k2think.ai/v1/chat/completions"
 _K2_MODEL = "MBZUAI-IFM/K2-Think-v2"
@@ -55,6 +58,93 @@ STEP 5 — CONFIDENCE & SUMMARY
 BEGIN your response with "## STEP 1" and end with "## STEP 5". Do not add any text outside this structure.
 
 STRICT PROHIBITION: You must NOT provide treatment recommendations, drug dosages, clinical advice, prognoses, or any guidance that could be construed as practising medicine. Your output is a regulatory eligibility audit, not medical advice. If asked anything beyond criterion matching, respond only with "Outside scope of eligibility audit." """
+
+_AUDIT_SYSTEM_PROMPT = """You are a Skeptical Clinical Trial Auditor — a Devil's Advocate whose sole purpose is to challenge eligibility decisions.
+
+You will be given a patient profile, trial criteria, and the verdict from a primary eligibility audit. Your task is to find the single strongest reason this patient might NOT be eligible, even if the primary verdict was ELIGIBLE.
+
+Search aggressively for:
+1. Ambiguous inclusion criteria that could be interpreted against the patient under strict reading
+2. Borderline lab values or biomarkers that might fail under rigorous clinical review
+3. Prior therapies that may implicitly conflict with inclusion or exclusion requirements
+4. Missing patient data whose absence, if filled, would likely disqualify the patient
+5. Edge cases in exclusion criteria that the primary audit did not fully explore
+
+Respond using this EXACT format — no other text before or after:
+
+AUDIT VERDICT: CONFLICT_FOUND | HIGH_INTEGRITY_MATCH
+CRITERION CHALLENGED: <criterion ID (e.g. EXC-2) and full criterion text, or "None">
+CHALLENGE: <One specific, evidence-based argument for why this patient might be disqualified. Reference exact patient data values. Be precise and clinically rigorous. Maximum 4 sentences. If HIGH_INTEGRITY_MATCH, write exactly: No exploitable conflict identified after exhaustive review.>
+AUDITOR CONFIDENCE: HIGH | MEDIUM | LOW
+
+Rules:
+- HIGH_INTEGRITY_MATCH means you genuinely cannot find a plausible disqualifier after careful review.
+- CONFLICT_FOUND must cite a specific criterion ID and specific patient data — no vague concerns.
+- You must NOT fabricate patient data. You may flag missing data as a potential concern.
+- Never provide medical advice or treatment recommendations.
+- Begin your response with "AUDIT VERDICT:" — do not add preamble."""
+
+
+def _build_audit_message(
+    patient: PatientData,
+    trial: TrialData,
+    pass1_verdict: str,
+    pass1_summary: str,
+) -> str:
+    """Render the user turn for Pass 2 — Devil's Advocate audit."""
+    inclusion_numbered = "\n".join(
+        f"  INC-{i + 1}: {c}" for i, c in enumerate(trial.eligibility.inclusion)
+    )
+    exclusion_numbered = "\n".join(
+        f"  EXC-{i + 1}: {c}" for i, c in enumerate(trial.eligibility.exclusion)
+    )
+    return f"""You are auditing the following eligibility decision. Find the strongest potential disqualifier.
+
+## PRIMARY AUDIT RESULT
+Overall Verdict : {pass1_verdict}
+Primary Summary : {pass1_summary}
+
+## PATIENT JSON
+{patient.model_dump_json(indent=2)}
+
+## TRIAL
+NCT ID   : {trial.nct_id}
+Title    : {trial.title}
+
+### Inclusion Criteria
+{inclusion_numbered or '  (none listed)'}
+
+### Exclusion Criteria
+{exclusion_numbered or '  (none listed)'}
+
+Now perform your Devil's Advocate audit. Follow the required format exactly."""
+
+
+def _parse_audit_response(text: str) -> tuple[str, str, str, str]:
+    """Return (verdict, criterion_challenged, challenge, confidence) from Pass 2 output."""
+    verdict = "HIGH_INTEGRITY_MATCH"
+    if re.search(r"AUDIT VERDICT:\s*CONFLICT_FOUND", text, re.IGNORECASE):
+        verdict = "CONFLICT_FOUND"
+
+    criterion = ""
+    m = re.search(r"CRITERION CHALLENGED:\s*(.+?)(?:\n|$)", text, re.IGNORECASE)
+    if m:
+        criterion = m.group(1).strip()
+
+    challenge = ""
+    m = re.search(
+        r"CHALLENGE:\s*(.+?)(?=AUDITOR CONFIDENCE|$)", text, re.IGNORECASE | re.DOTALL
+    )
+    if m:
+        challenge = m.group(1).strip()
+
+    confidence = "MEDIUM"
+    for c in ("HIGH", "MEDIUM", "LOW"):
+        if re.search(rf"AUDITOR CONFIDENCE:\s*{c}", text, re.IGNORECASE):
+            confidence = c
+            break
+
+    return verdict, criterion, challenge, confidence
 
 
 def _build_user_message(patient: PatientData, trial: TrialData) -> str:
@@ -199,32 +289,21 @@ async def _collect_sse_stream(response: httpx.Response) -> str:
     return "".join(chunks)
 
 
-async def match_patient_to_trial(patient: PatientData, trial: TrialData) -> MatchResult:
-    """Send patient + trial data to K2-Think-v2 and return a structured MatchResult."""
-    api_key = os.getenv("K2_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=500, detail="K2_API_KEY is not configured.")
-
+async def _call_k2(
+    messages: list,
+    headers: dict,
+    timeout: httpx.Timeout,
+    max_tokens: int = 4096,
+    temperature: float = 0.1,
+) -> str:
+    """Make one streaming call to K2 and return the concatenated response text."""
     payload = {
         "model": _K2_MODEL,
-        "messages": [
-            {"role": "system", "content": _SYSTEM_PROMPT},
-            {"role": "user", "content": _build_user_message(patient, trial)},
-        ],
-        "temperature": 0.1,
-        "max_tokens": 4096,
-        "stream": True,  # matches curl spec: -d '{"stream": true, ...}'
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "stream": True,
     }
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-
-    # Separate read timeout from connect timeout so slow SSE streams don't
-    # trigger a timeout between tokens, only on total wall-clock silence.
-    timeout = httpx.Timeout(connect=10.0, read=_TIMEOUT, write=10.0, pool=5.0)
-
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             async with client.stream(
@@ -237,17 +316,43 @@ async def match_patient_to_trial(patient: PatientData, trial: TrialData) -> Matc
                 if response.status_code != 200:
                     body = await response.aread()
                     raise HTTPException(
-                        502,
-                        f"K2 API returned HTTP {response.status_code}: {body[:300]}",
+                        502, f"K2 API returned HTTP {response.status_code}: {body[:300]}"
                     )
-                raw_reasoning = await _collect_sse_stream(response)
+                return await _collect_sse_stream(response)
     except httpx.TimeoutException:
-        raise HTTPException(
-            status_code=504,
-            detail="K2 API timed out. The model may be producing a long reasoning chain — try again.",
-        )
+        raise HTTPException(504, "K2 API timed out.")
     except httpx.RequestError as exc:
-        raise HTTPException(status_code=503, detail=f"K2 API unreachable: {exc}")
+        raise HTTPException(503, f"K2 API unreachable: {exc}")
+
+
+async def match_patient_to_trial(patient: PatientData, trial: TrialData) -> MatchResult:
+    """
+    Dual-pass K2 reasoning:
+      Pass 1 — Primary Eligibility Audit (structured 5-step protocol)
+      Pass 2 — Devil's Advocate Safety Audit (skeptical auditor seeks disqualifiers)
+    Pass 2 failure is non-fatal; the result is returned with audit fields set to None.
+    """
+    api_key = os.getenv("K2_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="K2_API_KEY is not configured.")
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    timeout = httpx.Timeout(connect=10.0, read=_TIMEOUT, write=10.0, pool=5.0)
+
+    # ── Pass 1: Primary Eligibility Audit ─────────────────────────────────────
+    raw_reasoning = await _call_k2(
+        messages=[
+            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "user", "content": _build_user_message(patient, trial)},
+        ],
+        headers=headers,
+        timeout=timeout,
+        max_tokens=4096,
+        temperature=0.1,
+    )
 
     if not raw_reasoning:
         raise HTTPException(
@@ -263,6 +368,27 @@ async def match_patient_to_trial(patient: PatientData, trial: TrialData) -> Matc
         trial.eligibility.exclusion,
     )
     summary = _extract_summary(raw_reasoning)
+    _log.info("Pass 1 complete — %s  confidence=%s", overall, confidence)
+
+    # ── Pass 2: Devil's Advocate Safety Audit ─────────────────────────────────
+    audit_verdict = audit_criterion = audit_challenge = audit_confidence = audit_raw = None
+    try:
+        audit_raw = await _call_k2(
+            messages=[
+                {"role": "system", "content": _AUDIT_SYSTEM_PROMPT},
+                {"role": "user", "content": _build_audit_message(patient, trial, overall, summary)},
+            ],
+            headers=headers,
+            timeout=timeout,
+            max_tokens=1024,
+            temperature=0.3,
+        )
+        audit_verdict, audit_criterion, audit_challenge, audit_confidence = _parse_audit_response(
+            audit_raw
+        )
+        _log.info("Pass 2 (Safety Audit) complete — %s", audit_verdict)
+    except Exception as exc:
+        _log.warning("Pass 2 (Devil's Advocate) failed — skipping: %s", exc)
 
     return MatchResult(
         nct_id=trial.nct_id,
@@ -272,4 +398,9 @@ async def match_patient_to_trial(patient: PatientData, trial: TrialData) -> Matc
         criteria_verdicts=criteria_verdicts,
         disqualifying_criteria=disqualifying,
         raw_reasoning=raw_reasoning,
+        audit_verdict=audit_verdict,
+        audit_criterion=audit_criterion,
+        audit_challenge=audit_challenge,
+        audit_confidence=audit_confidence,
+        audit_raw=audit_raw,
     )

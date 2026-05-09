@@ -79,3 +79,7 @@ node_modules/
 # ── Logs ──────────────────────────────────────────────────────────────────────
 logs/
 *.log
+
+# ── Exceptions: force-track specific files blocked by rules above ─────────────
+!data/mock_trials.json
+!backend/app/models/schema.py

@@ -1,0 +1,93 @@
+{
+  "NCT03661788": {
+    "nct_id": "NCT03661788",
+    "title": "Atezolizumab Plus Nab-Paclitaxel and Anthracycline-Based Chemotherapy in Early Triple-Negative Breast Cancer (IMpassion031)",
+    "conditions": ["Triple-Negative Breast Cancer", "Early Stage Breast Cancer"],
+    "status": "COMPLETED",
+    "phase": "PHASE3",
+    "eligibility": {
+      "inclusion": [
+        "Histologically confirmed invasive triple-negative breast cancer (ER-negative, PR-negative, HER2-negative) per local pathology",
+        "Early-stage breast cancer: cT2–cT4d, cN0–cN3, cM0 per AJCC 8th edition staging",
+        "Age >= 18 years at the time of informed consent",
+        "ECOG Performance Status 0 or 1",
+        "Adequate bone marrow function: ANC >= 1.5 × 10^9/L; Platelets >= 100 × 10^9/L; Hemoglobin >= 9.0 g/dL",
+        "Adequate hepatic function: AST and ALT <= 2.5 × ULN; Total bilirubin <= 1.5 × ULN",
+        "Adequate renal function: Creatinine clearance >= 30 mL/min (Cockcroft-Gault)",
+        "Left ventricular ejection fraction (LVEF) >= 55% by echocardiogram or MUGA scan within 3 months prior to enrollment",
+        "No prior systemic therapy or locoregional radiation therapy for the current breast cancer diagnosis"
+      ],
+      "exclusion": [
+        "Prior systemic anti-cancer therapy (chemotherapy, targeted therapy, immunotherapy) for the current breast cancer",
+        "Active or history of autoimmune disease requiring systemic treatment within the past 2 years (e.g., rheumatoid arthritis, systemic lupus, IBD)",
+        "Prior allogeneic stem cell transplantation or solid organ transplantation",
+        "Administration of a live attenuated vaccine within 4 weeks prior to initiation of study treatment",
+        "Treatment with systemic immunosuppressive medications (corticosteroids > 10 mg/day prednisone equivalent, methotrexate, azathioprine) within 2 weeks prior to enrollment",
+        "Known HIV infection or AIDS-defining condition",
+        "Active hepatitis B virus (HBV) or hepatitis C virus (HCV) infection at screening",
+        "Significant cardiovascular disease: NYHA Class II or greater congestive heart failure, unstable angina, serious cardiac arrhythmia requiring treatment within 3 months prior to enrollment",
+        "Pregnancy or active breastfeeding at the time of enrollment"
+      ]
+    }
+  },
+  "NCT04158791": {
+    "nct_id": "NCT04158791",
+    "title": "Isatuximab Plus Carfilzomib and Dexamethasone in Relapsed or Refractory Multiple Myeloma (IKEMA-2)",
+    "conditions": ["Multiple Myeloma", "Relapsed Multiple Myeloma", "Refractory Multiple Myeloma"],
+    "status": "RECRUITING",
+    "phase": "PHASE2",
+    "eligibility": {
+      "inclusion": [
+        "Histologically confirmed multiple myeloma per International Myeloma Working Group (IMWG) 2016 diagnostic criteria",
+        "Measurable disease: serum M-protein >= 0.5 g/dL OR urine M-protein >= 200 mg/24 hours OR serum free light chain ratio abnormal with involved FLC >= 10 mg/dL",
+        "Relapsed or refractory disease following at least 1 but no more than 3 prior lines of therapy",
+        "Age >= 18 years at time of informed consent",
+        "ECOG Performance Status 0, 1, or 2",
+        "Adequate hematologic function: ANC >= 1.0 × 10^9/L; Platelets >= 75 × 10^9/L; Hemoglobin >= 8.0 g/dL (transfusion support permitted)",
+        "Adequate hepatic function: AST and ALT <= 3.0 × ULN; Total bilirubin <= 2.0 × ULN",
+        "Adequate renal function: eGFR >= 30 mL/min/1.73 m² per CKD-EPI formula",
+        "Life expectancy > 3 months as assessed by the treating investigator"
+      ],
+      "exclusion": [
+        "Active or concurrent malignancy other than multiple myeloma within the past 3 years, excluding adequately treated non-melanoma skin cancer and in situ cervical or breast carcinoma — prior or active solid tumor malignancy (e.g., lung cancer, colorectal cancer) constitutes grounds for exclusion",
+        "Prior exposure to isatuximab or any other anti-CD38 monoclonal antibody therapy (e.g., daratumumab, MOR202)",
+        "Prior exposure to any checkpoint inhibitor immunotherapy including anti-PD-1, anti-PD-L1, or anti-CTLA-4 agents within 6 months prior to enrollment",
+        "Active uncontrolled bacterial, viral, or fungal infection requiring systemic treatment at time of enrollment",
+        "Known hypersensitivity or allergy to isatuximab, carfilzomib, dexamethasone, or any of their excipients",
+        "Clinically significant cardiovascular disease within 6 months: myocardial infarction, unstable angina, NYHA Class III or IV heart failure, uncontrolled arrhythmia",
+        "Plasma cell leukemia (> 20% circulating plasma cells) or primary systemic AL amyloidosis",
+        "Active central nervous system (CNS) involvement with multiple myeloma",
+        "Pregnancy or active breastfeeding at the time of enrollment"
+      ]
+    }
+  },
+  "NCT04280706": {
+    "nct_id": "NCT04280706",
+    "title": "Osimertinib With or Without Bevacizumab in Treating Patients With EGFR-Mutant Non-Small Cell Lung Cancer and Brain Metastases",
+    "conditions": ["Non-Small Cell Lung Cancer", "Brain Metastases"],
+    "status": "RECRUITING",
+    "phase": "PHASE2",
+    "eligibility": {
+      "inclusion": [
+        "Histologically or cytologically confirmed non-small cell lung cancer",
+        "EGFR sensitizing mutation confirmed: exon 19 deletion or exon 21 L858R substitution",
+        "Age >= 18 years at the time of study entry",
+        "ECOG Performance Status 0, 1, or 2",
+        "At least one measurable lesion per RECIST v1.1",
+        "Adequate bone marrow: ANC >= 1.5 x 10^9/L; Platelets >= 100 x 10^9/L",
+        "Adequate renal function: eGFR >= 45 mL/min/1.73 m2",
+        "Adequate hepatic function: ALT and AST <= 2.5 x ULN; total bilirubin <= 1.5 x ULN",
+        "No prior exposure to osimertinib or any third-generation EGFR TKI"
+      ],
+      "exclusion": [
+        "Prior treatment with any third-generation EGFR inhibitor (e.g., osimertinib, rociletinib, nazartinib)",
+        "Active autoimmune disease requiring systemic treatment within the past 2 years",
+        "Uncontrolled or symptomatic brain metastases requiring urgent radiation or steroids",
+        "QTc interval > 470 ms (females) or > 450 ms (males) on screening ECG",
+        "Pregnancy or active breastfeeding",
+        "Active systemic infection requiring IV antibiotics",
+        "History of interstitial lung disease or drug-induced interstitial lung disease"
+      ]
+    }
+  }
+}

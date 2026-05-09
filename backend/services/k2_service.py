@@ -1,4 +1,5 @@
 """Service for calling the MBZUAI K2-Think-v2 model to match patients against trials."""
+import json
 import os
 import re
 
@@ -172,6 +173,32 @@ def _extract_summary(raw: str) -> str:
     return paragraphs[-1] if paragraphs else raw[:500]
 
 
+async def _collect_sse_stream(response: httpx.Response) -> str:
+    """
+    Consume a Server-Sent Events stream from K2 and return the full text.
+
+    Each SSE line has the form:
+        data: {"choices":[{"delta":{"content":"..."}}]}
+    The final sentinel is:
+        data: [DONE]
+    """
+    chunks: list[str] = []
+    async for line in response.aiter_lines():
+        if not line.startswith("data: "):
+            continue
+        sse_data = line[6:].strip()
+        if sse_data == "[DONE]":
+            break
+        try:
+            obj = json.loads(sse_data)
+            content = obj["choices"][0]["delta"].get("content", "")
+            if content:
+                chunks.append(content)
+        except (json.JSONDecodeError, KeyError, IndexError):
+            continue
+    return "".join(chunks)
+
+
 async def match_patient_to_trial(patient: PatientData, trial: TrialData) -> MatchResult:
     """Send patient + trial data to K2-Think-v2 and return a structured MatchResult."""
     api_key = os.getenv("K2_API_KEY")
@@ -184,8 +211,9 @@ async def match_patient_to_trial(patient: PatientData, trial: TrialData) -> Matc
             {"role": "system", "content": _SYSTEM_PROMPT},
             {"role": "user", "content": _build_user_message(patient, trial)},
         ],
-        "temperature": 0.1,  # low temperature for deterministic clinical reasoning
+        "temperature": 0.1,
         "max_tokens": 4096,
+        "stream": True,  # matches curl spec: -d '{"stream": true, ...}'
     }
 
     headers = {
@@ -193,37 +221,38 @@ async def match_patient_to_trial(patient: PatientData, trial: TrialData) -> Matc
         "Content-Type": "application/json",
     }
 
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-        try:
-            response = await client.post(_K2_ENDPOINT, json=payload, headers=headers)
-        except httpx.TimeoutException:
-            raise HTTPException(
-                status_code=504,
-                detail="K2 API timed out. The model may be producing a long reasoning chain — try again.",
-            )
-        except httpx.RequestError as exc:
-            raise HTTPException(
-                status_code=503,
-                detail=f"K2 API unreachable: {exc}",
-            )
-
-    if response.status_code == 401:
-        raise HTTPException(status_code=401, detail="K2 API rejected the Bearer token. Check K2_API_KEY.")
-    if response.status_code == 429:
-        raise HTTPException(status_code=429, detail="K2 API rate limit exceeded. Please retry shortly.")
-    if response.status_code != 200:
-        raise HTTPException(
-            status_code=502,
-            detail=f"K2 API returned HTTP {response.status_code}: {response.text[:300]}",
-        )
+    # Separate read timeout from connect timeout so slow SSE streams don't
+    # trigger a timeout between tokens, only on total wall-clock silence.
+    timeout = httpx.Timeout(connect=10.0, read=_TIMEOUT, write=10.0, pool=5.0)
 
     try:
-        body = response.json()
-        raw_reasoning = body["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, ValueError) as exc:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            async with client.stream(
+                "POST", _K2_ENDPOINT, json=payload, headers=headers
+            ) as response:
+                if response.status_code == 401:
+                    raise HTTPException(401, "K2 API rejected the Bearer token. Check K2_API_KEY.")
+                if response.status_code == 429:
+                    raise HTTPException(429, "K2 API rate limit exceeded. Please retry shortly.")
+                if response.status_code != 200:
+                    body = await response.aread()
+                    raise HTTPException(
+                        502,
+                        f"K2 API returned HTTP {response.status_code}: {body[:300]}",
+                    )
+                raw_reasoning = await _collect_sse_stream(response)
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=504,
+            detail="K2 API timed out. The model may be producing a long reasoning chain — try again.",
+        )
+    except httpx.RequestError as exc:
+        raise HTTPException(status_code=503, detail=f"K2 API unreachable: {exc}")
+
+    if not raw_reasoning:
         raise HTTPException(
             status_code=502,
-            detail=f"Unexpected K2 API response shape: {exc}",
+            detail="K2 returned an empty response. The stream may have closed prematurely.",
         )
 
     overall = _parse_overall_eligibility(raw_reasoning)

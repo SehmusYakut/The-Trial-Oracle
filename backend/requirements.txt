@@ -1,5 +1,3 @@
-# Root requirements.txt — used by Vercel to install backend dependencies.
-# Keep in sync with backend/requirements.txt.
 fastapi==0.104.1
 uvicorn==0.24.0
 pydantic==2.5.0

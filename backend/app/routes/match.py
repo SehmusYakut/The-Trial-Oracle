@@ -1,9 +1,10 @@
 """POST /api/match — orchestrates trial fetch + K2 reasoning + structured response."""
-from fastapi import APIRouter
+import httpx
+from fastapi import APIRouter, HTTPException
 
 from backend.app.models.patient import MatchRequest, MatchResponse, MatchResult
 from backend.app.models.trial import TrialData
-from backend.services.trial_service import fetch_trial
+from backend.services.trial_service import fetch_trial, _RetryableError
 from backend.services.k2_service import match_patient_to_trial
 
 router = APIRouter(prefix="/api", tags=["match"])
@@ -61,6 +62,14 @@ async def match_patient(body: MatchRequest):
     - reasoning_chain    : per-criterion audit with patient evidence and verdict
     - raw_reasoning      : full K2 chain-of-thought
     """
-    trial: TrialData = await fetch_trial(body.nct_id)
+    try:
+        trial: TrialData = await fetch_trial(body.nct_id)
+    except HTTPException:
+        raise
+    except (_RetryableError, httpx.RequestError, Exception) as exc:
+        raise HTTPException(
+            status_code=404,
+            detail="Trial not found in local cache and API is currently rate-limited.",
+        ) from exc
     result: MatchResult = await match_patient_to_trial(body.patient, trial)
     return _build_response(result, trial)

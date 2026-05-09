@@ -7,8 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 
-from backend.app.routes.trial import router as trial_router
-from backend.app.routes.match import router as match_router
+from .app.routes.trial import router as trial_router
+from .app.routes.match import router as match_router
 
 load_dotenv()
 

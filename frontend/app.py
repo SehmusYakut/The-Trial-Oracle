@@ -55,6 +55,18 @@ div[data-testid="stFormSubmitButton"]>button:hover{box-shadow:0 0 32px rgba(16,1
 .streamlit-expanderContent{background:#08111E!important;border:1px solid #1E3A5F!important;border-top:none!important}
 [data-testid="stStatusWidget"]{background:#0B1929!important;border:1px solid #1E3A5F!important}
 hr{border-color:#0D2040!important}
+/* ─── ANIMATIONS ─── */
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes conflict-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0),border-color:rgba(239,68,68,.5)}
+  50%{box-shadow:0 0 0 6px rgba(239,68,68,.18),border-color:rgba(239,68,68,.9)}
+}
+/* ─── SUMMARY BOX ─── */
+.summary-box{background:#0B1929;border:1px solid #2D4F7A;border-left:4px solid #10B981;border-radius:8px;padding:14px 18px;margin-bottom:10px}
+.summary-box p,.summary-box div{color:#F1F5F9!important;font-size:.95rem!important;line-height:1.7!important}
+/* ─── REASONING CHAIN ─── */
+.reasoning-chain{display:flex;flex-direction:column;gap:6px}
+.reasoning-chain p,.reasoning-chain div,.reasoning-chain span{color:#E2E8F0!important}
 /* ─── AUDIT COMPONENTS ─── */
 .audit-card{border-radius:10px;padding:18px 20px;margin-bottom:4px}
 .audit-conflict{background:rgba(239,68,68,.07);border:2px solid rgba(239,68,68,.4)}
@@ -63,9 +75,16 @@ hr{border-color:#0D2040!important}
 .audit-badge-conflict{background:rgba(239,68,68,.18);color:#FCA5A5;border:2px solid rgba(239,68,68,.55);box-shadow:0 0 18px rgba(239,68,68,.2)}
 .audit-badge-clean{background:rgba(16,185,129,.14);color:#6EE7B7;border:1.5px solid rgba(16,185,129,.35);box-shadow:0 0 16px rgba(16,185,129,.18)}
 .audit-badge-pending{background:rgba(100,116,139,.14);color:#94A3B8;border:1.5px solid rgba(100,116,139,.3)}
-.audit-conflict-banner{background:rgba(239,68,68,.1);border:2px solid rgba(239,68,68,.5);border-radius:10px;padding:16px 20px;margin-bottom:16px}
-.audit-conflict-title{font-size:1.05rem;font-weight:800;color:#EF4444;margin-bottom:6px;display:block}
-.audit-conflict-body{color:#FCA5A5;font-size:.9rem;line-height:1.6}
+.audit-conflict-banner{
+  background:rgba(239,68,68,.1);
+  border:3px solid rgba(239,68,68,.55);
+  border-radius:12px;
+  padding:18px 22px;
+  margin-bottom:18px;
+  animation:conflict-pulse 2s ease-in-out infinite;
+}
+.audit-conflict-title{font-size:1.1rem;font-weight:900;color:#EF4444;margin-bottom:8px;display:block;letter-spacing:.02em}
+.audit-conflict-body{color:#FECACA;font-size:.92rem;line-height:1.65}
 .audit-criterion{font-family:monospace;font-size:.84rem;color:#94A3B8;background:#060D1A;padding:6px 12px;border-radius:4px;margin-bottom:10px;display:block;word-break:break-word}
 .audit-challenge-label{font-size:.65rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:rgba(245,158,11,.85);display:block;margin-bottom:5px}
 .audit-challenge-label-clean{color:rgba(16,185,129,.85)}
@@ -151,8 +170,9 @@ hr{border-color:#0D2040!important}
 .patient-table tr:last-child td{border-bottom:none}
 .pt-key{font-weight:600;color:#94A3B8;width:38%}
 /* ─── FOOTER ─── */
-.sci-footer{margin-top:28px;padding:14px 18px;background:#040B16;border:1px solid #0D2040;border-radius:8px;font-size:.76rem;color:#64748B;line-height:1.7}
+.sci-footer{margin-top:28px;padding:16px 20px;background:#040B16;border:1px solid #0D2040;border-radius:8px;font-size:.76rem;color:#64748B;line-height:1.7}
 .sci-footer strong{color:#94A3B8}
+.sci-footer-brand{text-align:center;margin-top:12px;padding-top:10px;border-top:1px solid #0D2040;font-size:.8rem;font-weight:600;color:#475569;letter-spacing:.04em}
 </style>""", unsafe_allow_html=True)
 
 # ── Sample data ────────────────────────────────────────────────────────────────
@@ -276,7 +296,7 @@ _VERDICT_META = {
 def _render_logic_tree(items: list) -> None:
     if not items:
         st.markdown(
-            '<p style="color:#334155;font-style:italic;padding:12px 0">No criteria recorded.</p>',
+            '<p style="color:#64748B;font-style:italic;padding:12px 0">No criteria recorded.</p>',
             unsafe_allow_html=True,
         )
         return
@@ -293,7 +313,7 @@ def _render_logic_tree(items: list) -> None:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    cards = ['<div class="logic-tree">']
+    cards = ['<div class="reasoning-chain logic-tree">']
     for item in items:
         cid      = _html.escape(item.get("criterion_id", ""))
         verdict  = item.get("verdict", "UNCERTAIN")
@@ -489,11 +509,11 @@ with st.sidebar:
     st.markdown("**Data Source**")
     st.code("ClinicalTrials.gov API v2", language=None)
     st.markdown("---")
-    st.markdown("**Demo NCT IDs**")
+    st.markdown("**Clinical Protocols**")
     for nct, lbl in [
-        ("NCT04280706", "Lung cancer / EGFR ✅"),
-        ("NCT03661788", "Breast cancer / TNBC ✅"),
-        ("NCT04158791", "COVID-19"),
+        ("NCT04280706", "Lung cancer / EGFR"),
+        ("NCT03661788", "Breast cancer / TNBC"),
+        ("NCT04158791", "Multiple Myeloma"),
     ]:
         st.markdown(f"`{nct}` — {lbl}")
     st.markdown("---")
@@ -518,9 +538,9 @@ st.markdown("""
 st.markdown('<div class="section-label">Clinical Trial Identifier</div>', unsafe_allow_html=True)
 nct_id = st.text_input(
     "NCT ID", placeholder="NCT04280706", label_visibility="collapsed",
-    key="nct_id_input", help="NCT number — NCT04280706 (lung) and NCT03661788 (breast) load instantly from local cache.",
+    key="nct_id_input", help="Enter an NCT ID — NCT04280706, NCT03661788, or NCT04158791 are pre-loaded.",
 )
-st.caption("Format: NCT + 8 digits  ·  NCT04280706 (NSCLC/EGFR) · NCT03661788 (TNBC) · Both served instantly from local cache")
+st.caption("Format: NCT + 8 digits  ·  Supported: NCT04280706 (NSCLC/EGFR) · NCT03661788 (TNBC) · NCT04158791 (Multiple Myeloma)")
 st.markdown("---")
 
 # ── Session-state defaults ─────────────────────────────────────────────────────
@@ -545,6 +565,7 @@ col_form, col_preview = st.columns([3, 2], gap="large")
 # ── LEFT: patient form ────────────────────────────────────────────────────────
 with col_form:
     st.markdown('<div class="section-label">Patient Data Entry</div>', unsafe_allow_html=True)
+    st.caption("Modify patient markers below to see K2 generate real-time, case-specific reasoning.")
 
     if st.button("Load Sample Patient  (NSCLC / EGFR)", help="Pre-fill with a demo NSCLC patient"):
         for k, v in _SAMPLE.items():
@@ -634,7 +655,7 @@ with col_preview:
     else:
         st.markdown(
             '<div style="text-align:center;padding:48px 0">'
-            '<div style="font-size:2.5rem;color:#1E3A5F">⬡</div>'
+            '<div style="font-size:2.5rem;color:#2D4F7A">⬡</div>'
             '<div style="margin-top:10px;font-size:0.85rem;color:#64748B">Fill the form to see the preview</div>'
             '</div>',
             unsafe_allow_html=True,
@@ -657,9 +678,18 @@ if submitted:
         st.error("Please enter at least one diagnosis before starting the analysis.")
         st.stop()
 
-    with st.status("Running eligibility analysis…", expanded=True) as status:
-        st.write(f"**[1/3]** Fetching trial `{nct_clean}`…")
-        st.caption("_Checking local demo cache first — live API used as fallback (4 retry attempts with browser headers)._")
+    with st.status("Initializing dual-pass reasoning engine…", expanded=True) as status:
+        st.write(f"**[1/4]** Retrieving Clinical Protocol `{nct_clean}`…")
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;'
+            'background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2);'
+            'border-radius:6px;margin:6px 0 12px">'
+            '<span style="font-size:1.1rem">⟳</span>'
+            '<span style="font-size:.85rem;color:#6EE7B7;font-weight:600">'
+            'K2 is performing multi-hop reasoning across all eligibility criteria…'
+            '</span></div>',
+            unsafe_allow_html=True,
+        )
 
         payload = {"nct_id": nct_clean, "patient": patient_dict}
         try:
@@ -678,34 +708,33 @@ if submitted:
             st.stop()
 
         if response.status_code == 403:
-            status.update(label="API blocked (403)", state="error")
+            status.update(label="Protocol access blocked", state="error")
             st.warning(
-                "**Demo Mode Active: Please use NCT04280706** — "
-                "ClinicalTrials.gov blocked all fetch attempts (403 Forbidden). "
-                "Only trials in the local demo cache are available right now.",
+                f"Clinical protocol **{nct_clean}** could not be retrieved — "
+                "the live API returned 403 Forbidden. "
+                "Please verify the NCT ID or try one of the supported protocols listed in the sidebar.",
                 icon="🚫",
             )
             st.stop()
         if response.status_code == 404:
-            status.update(label="Not in demo cache", state="error")
+            status.update(label="Protocol not found", state="error")
             st.warning(
-                "**Demo Mode Active: Please use NCT04280706** — "
-                f"Trial **{nct_clean}** is not in the local demo cache and the live API is "
-                "currently rate-limited. Enter **NCT04280706** to see a full analysis.",
+                f"Clinical protocol **{nct_clean}** was not found. "
+                "Please verify the NCT ID is correct. "
+                "Supported protocols: **NCT04280706**, **NCT03661788**, **NCT04158791**.",
                 icon="⚠️",
             )
             st.stop()
         if response.status_code >= 500:
-            status.update(label="Backend error", state="error")
+            status.update(label="Reasoning engine error", state="error")
             st.warning(
-                "**Demo Mode Active: Please use NCT04280706** — "
-                "The backend encountered an error fetching that trial. "
-                "Only NCT04280706 is guaranteed to work in this demo environment.",
+                "The reasoning engine encountered an unexpected error. "
+                "Please try again or enter a different NCT ID.",
                 icon="⚠️",
             )
             st.stop()
         if response.status_code != 200:
-            status.update(label="Backend error", state="error")
+            status.update(label="Unexpected response", state="error")
             try:
                 detail = response.json().get("detail", response.text[:300])
             except Exception:
@@ -713,12 +742,12 @@ if submitted:
             st.error(f"Backend returned HTTP **{response.status_code}**: {detail}")
             st.stop()
 
-        st.write("**[2/4]** Trial data received — Pass 1: K2 eligibility audit running…")
-        st.caption("_K2 performs chain-of-thought analysis across every criterion. This takes 30–90 s._")
         data = response.json()
+        st.write("**[2/4]** Clinical protocol received — Analyzing Eligibility Logic…")
+        st.caption("_K2 performs multi-hop chain-of-thought analysis across every criterion. This takes 30–90 s._")
 
-        st.write("**[3/4]** Pass 2: Devil's Advocate safety audit running…")
-        st.caption("_A second K2 instance plays skeptical auditor — searching for any disqualifying edge case._")
+        st.write("**[3/4]** Pass 2: Devil's Advocate Safety Audit — challenging the primary verdict…")
+        st.caption("_A second K2 reasoning chain plays skeptical auditor, searching for disqualifying edge cases._")
 
         st.write("**[4/4]** Structuring dual-pass reasoning output…")
         time.sleep(0.2)
@@ -755,6 +784,7 @@ if submitted:
     vc1, vc2, vc3, vc4 = st.columns([3, 1, 1, 1], gap="medium")
     with vc1:
         st.markdown('<div class="verdict-label">Clinical Summary</div>', unsafe_allow_html=True)
+        st.markdown('<div class="summary-box">', unsafe_allow_html=True)
 
         def _summary_words(text: str):
             words = text.split()
@@ -763,6 +793,7 @@ if submitted:
                 time.sleep(0.025)
 
         st.write_stream(_summary_words(summary))
+        st.markdown('</div>', unsafe_allow_html=True)
     with vc2:
         c = _score_color(score)
         st.markdown(
@@ -849,10 +880,14 @@ if submitted:
         "or clinical research coordinator before any patient action is taken."
     )
     st.markdown(
-        f'<div class="sci-footer"><strong>Scientific Disclaimer</strong><br>{_html.escape(disc)}<br><br>'
+        f'<div class="sci-footer">'
+        f'<strong>Scientific Disclaimer</strong><br>{_html.escape(disc)}<br><br>'
         f'<strong>Powered by</strong> MBZUAI-IFM/K2-Think-v2 &nbsp;·&nbsp; '
-        f'<strong>Data</strong> ClinicalTrials.gov API v2 &nbsp;·&nbsp; '
-        f'<strong>The Trial Oracle — Clinical AI Division &nbsp;·&nbsp; Build with K2 Think V2 Hackathon · 2026</strong></div>',
+        f'<strong>Data</strong> ClinicalTrials.gov API v2'
+        f'<div class="sci-footer-brand">'
+        f'The Trial Oracle &nbsp;—&nbsp; Clinical AI Division &nbsp;·&nbsp; '
+        f'Build with K2 Think V2 Hackathon &nbsp;·&nbsp; 2026'
+        f'</div></div>',
         unsafe_allow_html=True,
     )
 

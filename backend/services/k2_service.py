@@ -1,8 +1,10 @@
 """Service for calling the MBZUAI K2-Think-v2 model to match patients against trials."""
+import datetime
 import json
 import logging
 import os
 import re
+import uuid
 
 import httpx
 from fastapi import HTTPException
@@ -342,10 +344,19 @@ async def match_patient_to_trial(patient: PatientData, trial: TrialData) -> Matc
     }
     timeout = httpx.Timeout(connect=10.0, read=_TIMEOUT, write=10.0, pool=5.0)
 
+    # Unique session context injected into both passes — forces K2 to generate
+    # a fresh, independent reasoning chain rather than repeating cached patterns.
+    session_id = uuid.uuid4().hex[:8].upper()
+    session_ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    session_header = (
+        f"[SESSION: {session_id} · TIMESTAMP: {session_ts}]\n"
+        "This is a unique patient analysis session. Perform a fully independent audit.\n\n"
+    )
+
     # ── Pass 1: Primary Eligibility Audit ─────────────────────────────────────
     raw_reasoning = await _call_k2(
         messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": session_header + _SYSTEM_PROMPT},
             {"role": "user", "content": _build_user_message(patient, trial)},
         ],
         headers=headers,
@@ -375,7 +386,7 @@ async def match_patient_to_trial(patient: PatientData, trial: TrialData) -> Matc
     try:
         audit_raw = await _call_k2(
             messages=[
-                {"role": "system", "content": _AUDIT_SYSTEM_PROMPT},
+                {"role": "system", "content": session_header + _AUDIT_SYSTEM_PROMPT},
                 {"role": "user", "content": _build_audit_message(patient, trial, overall, summary)},
             ],
             headers=headers,

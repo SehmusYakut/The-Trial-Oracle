@@ -1,6 +1,6 @@
 """Data models for The Trial Oracle"""
-from .trial import EligibilityCriteria, TrialData, TrialRequest
-from .patient import (
+from backend.app.models.trial import EligibilityCriteria, TrialData, TrialRequest
+from backend.app.models.patient import (
     CriterionVerdict,
     MatchRequest,
     MatchResponse,

@@ -9,12 +9,12 @@ import uuid
 import httpx
 from fastapi import HTTPException
 
-from ..app.models.patient import (
+from backend.app.models.patient import (
     CriterionVerdict,
     MatchResult,
     PatientData,
 )
-from ..app.models.trial import TrialData
+from backend.app.models.trial import TrialData
 
 _log = logging.getLogger(__name__)
 

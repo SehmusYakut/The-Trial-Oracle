@@ -2,10 +2,10 @@
 import httpx
 from fastapi import APIRouter, HTTPException
 
-from ..models.patient import MatchRequest, MatchResponse, MatchResult
-from ..models.trial import TrialData
-from ...services.trial_service import fetch_trial, _RetryableError
-from ...services.k2_service import match_patient_to_trial
+from backend.app.models.patient import MatchRequest, MatchResponse, MatchResult
+from backend.app.models.trial import TrialData
+from backend.services.trial_service import fetch_trial, _RetryableError
+from backend.services.k2_service import match_patient_to_trial
 
 router = APIRouter(prefix="/api", tags=["match"])
 

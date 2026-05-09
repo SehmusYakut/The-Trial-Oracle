@@ -1,8 +1,8 @@
 """Routes for clinical trial data retrieval."""
 from fastapi import APIRouter
 
-from ..models.trial import TrialData, TrialRequest
-from ...services.trial_service import fetch_trial
+from backend.app.models.trial import TrialData, TrialRequest
+from backend.services.trial_service import fetch_trial
 
 router = APIRouter(prefix="/trials", tags=["trials"])
 

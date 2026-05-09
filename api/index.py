@@ -7,8 +7,8 @@ import sys
 import os
 from pathlib import Path
 
-root_path = str(Path(__file__).resolve().parent.parent)
-if root_path not in sys.path:
-    sys.path.insert(0, root_path)
+project_root = str(Path(__file__).resolve().parent.parent)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from backend.main import app  # noqa: F401  – Vercel picks up `app` from this module

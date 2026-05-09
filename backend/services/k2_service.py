@@ -14,7 +14,7 @@ from backend.app.models.patient import (
     MatchResult,
     PatientData,
 )
-from backend.app.models.schemas import TrialData
+from backend.app.models.schema import TrialData
 
 _log = logging.getLogger(__name__)
 

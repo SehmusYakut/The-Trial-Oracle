@@ -1,9 +1,10 @@
-# Environment variables
+# ── Credentials — never commit ────────────────────────────────────────────────
 .env
 .env.local
+.env.*.local
 *.env
 
-# Python
+# ── Python build artefacts ────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
@@ -12,6 +13,7 @@ __pycache__/
 env/
 venv/
 ENV/
+.venv/
 build/
 develop-eggs/
 dist/
@@ -27,26 +29,53 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+pip-wheel-metadata/
 
-# IDE
+# ── Large binary / model files (100 MB Git hard limit) ────────────────────────
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.onnx
+*.bin
+*.safetensors
+*.parquet
+*.arrow
+*.feather
+data/
+datasets/
+models/
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
+# ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Streamlit
-.streamlit/
+# ── Vercel ────────────────────────────────────────────────────────────────────
+.vercel/
+
+# ── Streamlit ─────────────────────────────────────────────────────────────────
 *.streamlit
 
-# API Cache
+# ── Node (if any tooling is added) ───────────────────────────────────────────
+node_modules/
+.npm/
+
+# ── API / HTTP cache ─────────────────────────────────────────────────────────
 .cache/
 *.cache
+.httpx_cache/
 
-# Logs
+# ── Logs ──────────────────────────────────────────────────────────────────────
 logs/
 *.log

@@ -7,17 +7,17 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
+from backend.app.routes.trial import router as trial_router
+from backend.app.routes.match import router as match_router
+
 load_dotenv()
 
-# Initialize FastAPI app
 app = FastAPI(
     title="The Trial Oracle",
     description="Clinical Reasoning Engine for Clinical Trial Matching",
-    version="1.0.0"
+    version="1.0.0",
 )
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,14 +26,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(trial_router)
+app.include_router(match_router)
+
+
 @app.get("/")
 async def root():
-    """Root endpoint"""
     return {"message": "The Trial Oracle API", "status": "running"}
+
 
 @app.get("/health")
 async def health():
-    """Health check endpoint"""
     return {"status": "healthy"}
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ from tenacity import (
     wait_random,
 )
 
-from backend.app.models.trial import EligibilityCriteria, TrialData
+from backend.app.models.schemas import EligibilityCriteria, TrialData
 
 _log = logging.getLogger(__name__)
 logging.basicConfig(

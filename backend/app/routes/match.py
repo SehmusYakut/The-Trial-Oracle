@@ -3,7 +3,7 @@ import httpx
 from fastapi import APIRouter, HTTPException
 
 from backend.app.models.patient import MatchRequest, MatchResponse, MatchResult
-from backend.app.models.trial import TrialData
+from backend.app.models.schemas import TrialData
 from backend.services.trial_service import fetch_trial, _RetryableError
 from backend.services.k2_service import match_patient_to_trial
 
